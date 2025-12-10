@@ -1,117 +1,246 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>MUTECH — Investment Platform (Demo)</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MUTECH — Investment Platform (Demo)</title>
 
-  <!-- Google font -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css">
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-  <!-- Optional Three.js for particle background -->
-  <script src="https://unpkg.com/three@0.161.0/build/three.min.js" defer></script>
-  <script src="app.js" defer></script>
+<!-- Three.js (optional but included) -->
+<script src="https://unpkg.com/three@0.161.0/build/three.min.js" defer></script>
+
+<style>
+  :root{
+    --bg-dark: #0a0e27;
+    --bg-light: #f6f7fb;
+    --card-dark: rgba(255,255,255,0.03);
+    --card-light: #ffffff;
+    --accent1: #667eea;
+    --accent2: #764ba2;
+    --glass: rgba(255,255,255,0.06);
+    --text-dark: #0b1220;
+    --text-light: #ffffff;
+    --radius: 12px;
+  }
+  /* Reset & base */
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Poppins',system-ui,-apple-system,Segoe UI,Roboto,Arial;
+    background:var(--bg-dark);
+    color:var(--text-light);
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    line-height:1.45;
+    overflow-y:auto;
+  }
+
+  /* canvas background (3D) */
+  #bg-canvas{ position:fixed; inset:0; width:100%; height:100%; z-index:0; pointer-events:none; }
+
+  /* site container */
+  .site{ position:relative; z-index:2; max-width:1100px; margin:0 auto; padding:1rem; }
+
+  /* nav */
+  nav{ display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:0.7rem; border-radius:10px; margin-bottom:0.6rem;
+        background:linear-gradient(135deg,var(--accent1),var(--accent2)); box-shadow: 0 10px 28px rgba(0,0,0,0.35);}
+  .brand{ display:flex; flex-direction:column; color:#fff; }
+  .brand .logo{ font-weight:700; font-size:1.25rem; letter-spacing:0.4px }
+  .brand .tag{ font-size:0.75rem; opacity:0.95 }
+
+  /* top controls */
+  .controls{ display:flex; gap:0.5rem; align-items:center; }
+  .btn{ padding:0.55rem 0.9rem; border-radius:10px; border:0; cursor:pointer; font-weight:600 }
+  .btn-primary{ background:linear-gradient(135deg,var(--accent1),var(--accent2)); color:white; box-shadow:0 8px 24px rgba(102,126,234,0.12); }
+  .btn-outline{ background:transparent; color:white; border:1px solid rgba(255,255,255,0.12); }
+  .btn-ghost{ background:transparent; color:white; opacity:0.95 }
+  .theme-toggle{ background:rgba(255,255,255,0.12); color:white; padding:6px 10px; border-radius:8px; border:0; cursor:pointer }
+
+  /* grid layout */
+  .main-grid{ display:grid; gap:1rem; grid-template-columns: 1fr; align-items:start; }
+  @media(min-width:1000px){ .main-grid{ grid-template-columns: 1fr 380px; } }
+
+  /* cards */
+  .card{ border-radius:var(--radius); padding:1rem; background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02)); border:1px solid rgba(255,255,255,0.04); box-shadow:0 8px 24px rgba(0,0,0,0.35); }
+  .glass{ backdrop-filter: blur(8px); background: rgba(255,255,255,0.04); }
+
+  /* landing content */
+  h1,h2,h3,h4{ margin-bottom:.45rem }
+  .lead{ color:rgba(255,255,255,0.9); margin-bottom:1rem }
+
+  /* plans */
+  .plans{ display:grid; gap:0.6rem; grid-template-columns:1fr; }
+  @media(min-width:720px){ .plans{ grid-template-columns:repeat(3,1fr); } }
+  .plan{ padding:0.9rem; border-radius:10px; background:rgba(255,255,255,0.02); border:1px solid rgba(255,255,255,0.03) }
+
+  /* deposit box */
+  .deposit-box{ margin-top:1rem; padding:0.9rem; border-radius:10px; background:rgba(0,0,0,0.12); border:1px solid rgba(255,255,255,0.04) }
+  .deposit-actions{ margin-top:0.6rem; display:flex; gap:0.5rem; flex-wrap:wrap }
+
+  /* dashboard */
+  .dash-header{ display:flex; justify-content:space-between; gap:1rem; align-items:center; flex-wrap:wrap; margin-bottom:0.8rem }
+  .wallet-stats{ display:flex; gap:1rem; align-items:center }
+  .wallet-stats div{ text-align:center }
+  .big{ font-weight:700; font-size:1.05rem }
+
+  /* tables */
+  .table-wrap{ overflow:auto; margin-top:0.6rem; }
+  table{ width:100%; border-collapse:collapse; min-width:600px }
+  thead th{ font-size:0.78rem; text-align:left; padding:0.6rem; color:rgba(255,255,255,0.85); background:rgba(0,0,0,0.06) }
+  tbody td{ padding:0.6rem; border-bottom:1px solid rgba(255,255,255,0.03) }
+
+  /* admin aside */
+  aside.card{ position:sticky; top:84px }
+
+  /* modals */
+  .modal{ position:fixed; inset:0; z-index:60; display:flex; align-items:center; justify-content:center; background:rgba(2,6,23,0.6) }
+  .modal-card{ width:100%; max-width:520px; border-radius:12px; padding:1rem; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.06) }
+  .form{ display:flex; flex-direction:column; gap:0.5rem }
+  .form input, .form select{ padding:0.6rem; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background:rgba(255,255,255,0.02); color:inherit; outline:none }
+  .form input:focus{ box-shadow:0 8px 24px rgba(102,126,234,0.12); border-color:var(--accent1) }
+
+  /* small text */
+  .muted{ color:rgba(255,255,255,0.75) }
+  .small{ font-size:0.85rem }
+
+  /* light theme (toggled) */
+  body.light{ background:var(--bg-light); color:var(--text-dark) }
+  body.light .card{ background:var(--card-light); border:1px solid rgba(10,20,30,0.06); color:var(--text-dark); box-shadow:0 8px 30px rgba(8,10,20,0.05) }
+  body.light .nav{ background:linear-gradient(135deg,#e1e8ff,#fde8ff); color:var(--text-dark) }
+  body.light .btn-outline{ color:var(--text-dark); border-color:rgba(0,0,0,0.06) }
+  body.light .modal{ background: rgba(2,6,23,0.15) }
+  body.light .form input{ background:#fff; color:var(--text-dark); border:1px solid rgba(0,0,0,0.06) }
+
+  /* responsive tweaks */
+  @media(max-width:480px){
+    nav{ padding:0.6rem; border-radius:8px }
+    .brand .logo{ font-size:1rem }
+    .deposit-box{ padding:0.6rem }
+    .modal-card{ margin:0 8px }
+    table{ min-width:520px }
+  }
+</style>
 </head>
 <body>
+  <!-- 3D canvas (static by default) -->
   <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
-  <div class="container">
-    <nav class="nav glass-effect">
-      <div class="nav-left">
-        <h1 class="brand">MUTECH</h1>
-        <small class="tag">Investment Platform</small>
+  <div class="site">
+    <nav>
+      <div class="brand">
+        <div class="logo">MUTECH</div>
+        <div class="tag small">Investment Platform</div>
       </div>
-      <div class="nav-right" id="auth-area">
-        <div id="auth-buttons">
-          <button id="login-btn" class="btn btn-primary">Login</button>
-          <button id="register-btn" class="btn btn-outline">Register</button>
-        </div>
-        <div id="user-menu" class="hidden">
-          <span id="username-display" class="username">User</span>
-          <button id="logout-btn" class="btn btn-ghost">Logout</button>
-          <button id="admin-panel-btn" class="btn admin-badge hidden">Admin</button>
+
+      <div class="controls" id="top-controls">
+        <button id="theme-toggle" class="theme-toggle small" title="Toggle light / dark">Light</button>
+        <button id="motion-toggle" class="theme-toggle small" title="Enable/disable background motion">Enable background motion</button>
+        <div id="auth-area">
+          <div id="auth-buttons" style="display:inline-flex;gap:6px">
+            <button id="login-btn" class="btn btn-primary">Login</button>
+            <button id="register-btn" class="btn btn-outline">Register</button>
+          </div>
+          <div id="user-menu" style="display:none;align-items:center;gap:8px">
+            <span id="username-display" class="small"></span>
+            <button id="logout-btn" class="btn btn-ghost">Logout</button>
+            <button id="admin-panel-btn" class="btn admin-badge" style="display:none">Admin</button>
+          </div>
         </div>
       </div>
     </nav>
 
     <main class="main-grid">
-      <!-- Landing / Plans -->
-      <section id="landing" class="card">
-        <h2>Welcome to MUTECH</h2>
-        <p class="lead">Demo investment dashboard. Register to try deposits, investments and referrals. <strong>Do not use real funds.</strong></p>
+      <!-- main column -->
+      <section>
+        <div id="landing" class="card">
+          <h2>Welcome to MUTECH</h2>
+          <p class="lead">Demo investment dashboard. Register to try deposits, investments and referrals. <strong>Do not use real funds.</strong></p>
 
-        <div class="plans">
-          <div class="plan">
-            <h4>Starter</h4><p>₦1,000 – ₦10,000</p><p>ROI: 20%</p><button class="btn invest-plan-btn" data-plan="starter">Choose</button>
+          <div class="plans">
+            <div class="plan">
+              <h4>Starter</h4>
+              <p>₦1,000 – ₦10,000</p>
+              <p>ROI: 20%</p>
+              <button class="btn btn-outline invest-plan-btn" data-plan="starter">Choose</button>
+            </div>
+            <div class="plan">
+              <h4>Premium</h4>
+              <p>₦10,000 – ₦50,000</p>
+              <p>ROI: 50%</p>
+              <button class="btn btn-outline invest-plan-btn" data-plan="premium">Choose</button>
+            </div>
+            <div class="plan">
+              <h4>Executive</h4>
+              <p>₦50,000 – ₦500,000</p>
+              <p>ROI: 100%</p>
+              <button class="btn btn-outline invest-plan-btn" data-plan="executive">Choose</button>
+            </div>
           </div>
-          <div class="plan">
-            <h4>Premium</h4><p>₦10,000 – ₦50,000</p><p>ROI: 50%</p><button class="btn invest-plan-btn" data-plan="premium">Choose</button>
-          </div>
-          <div class="plan">
-            <h4>Executive</h4><p>₦50,000 – ₦500,000</p><p>ROI: 100%</p><button class="btn invest-plan-btn" data-plan="executive">Choose</button>
+
+          <!-- Deposit account -->
+          <div class="deposit-box">
+            <h3>Deposit Account Details</h3>
+            <p><strong>Bank:</strong> Kuda Bank</p>
+            <p><strong>Account Name:</strong> MUTECH INVESTMENT</p>
+            <p><strong>Account Number:</strong> <span id="acctNum">2014613557</span></p>
+
+            <div class="deposit-actions">
+              <button id="copyAcctBtn" class="btn btn-primary">Copy Account Number</button>
+              <button id="open-deposit-modal" class="btn btn-outline">Submit Proof / Notify</button>
+            </div>
+            <p id="copyMsg" class="muted small" style="display:none;margin-top:6px">Copied ✓</p>
+            <p class="muted small" style="margin-top:8px">Steps: Transfer to the account above, then upload proof using "Submit Proof". Admin will approve the deposit.</p>
           </div>
         </div>
 
-        <!-- Deposit Account Box -->
-        <div class="deposit-box card glass-effect">
-          <h3>Deposit Account Details</h3>
-          <p><strong>Bank:</strong> Kuda Bank</p>
-          <p><strong>Account Name:</strong> MUTECH INVESTMENT</p>
-          <p><strong>Account Number:</strong> <span id="acctNum">2014613557</span></p>
-          <div class="deposit-actions">
-            <button id="copyAcctBtn" class="btn btn-primary">Copy Account Number</button>
-            <button id="open-deposit-modal" class="btn btn-outline">Submit Proof / Notify</button>
+        <!-- Dashboard (hidden until login) -->
+        <div id="dashboard" class="card" style="display:none">
+          <div class="dash-header">
+            <h2>Dashboard</h2>
+            <div class="wallet-stats">
+              <div><small>Balance</small><div id="wallet-balance" class="big">₦0</div></div>
+              <div><small>Active Investments</small><div id="active-investments" class="big">₦0</div></div>
+              <div><small>Referral</small><div id="referral-earnings" class="big">₦0</div></div>
+            </div>
           </div>
-          <p id="copyMsg" class="muted small" style="display:none;">Copied ✓</p>
+
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            <button id="deposit-btn" class="btn btn-primary">Deposit / Upload Proof</button>
+            <button id="withdraw-btn" class="btn btn-outline">Withdraw</button>
+            <button id="invest-btn" class="btn btn-primary">Invest</button>
+            <button id="referral-btn" class="btn btn-ghost">Referral</button>
+          </div>
+
+          <h3>Investment History</h3>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Plan</th><th>Amount</th><th>ROI</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+              <tbody id="investment-history"></tbody>
+            </table>
+          </div>
         </div>
       </section>
 
-      <!-- Dashboard -->
-      <section id="dashboard" class="card hidden">
-        <header class="dash-header">
-          <h2>Dashboard</h2>
-          <div class="wallet-stats">
-            <div><small>Balance</small><div id="wallet-balance" class="big">₦0</div></div>
-            <div><small>Active Investments</small><div id="active-investments" class="big">₦0</div></div>
-            <div><small>Referral</small><div id="referral-earnings" class="big">₦0</div></div>
-          </div>
-        </header>
-
-        <div class="actions">
-          <button id="deposit-btn" class="btn btn-primary">Deposit / Upload Proof</button>
-          <button id="withdraw-btn" class="btn btn-outline">Withdraw</button>
-          <button id="invest-btn" class="btn btn-primary">Invest</button>
-          <button id="referral-btn" class="btn btn-ghost">Referral</button>
-        </div>
-
-        <h3>Investment History</h3>
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Plan</th><th>Amount</th><th>ROI</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
-            <tbody id="investment-history"></tbody>
-          </table>
-        </div>
-      </section>
-
-      <!-- Admin panel -->
-      <aside id="admin-panel" class="card hidden">
-        <h2>Admin Panel</h2>
-        <div class="admin-stats">
-          <div>Total users: <span id="admin-total-users">0</span></div>
-          <div>Total investments: <span id="admin-total-investments">0</span></div>
-          <div>Pending deposits: <span id="admin-pending-deposits">0</span></div>
-          <div>Pending withdrawals: <span id="admin-pending-withdrawals">0</span></div>
+      <!-- admin / aside column -->
+      <aside class="card glass" id="admin-panel" style="display:none">
+        <h3>Admin Panel</h3>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+          <div>Total users: <strong id="admin-total-users">0</strong></div>
+          <div>Total investments: <strong id="admin-total-investments">0</strong></div>
+          <div>Pending deposits: <strong id="admin-pending-deposits">0</strong></div>
+          <div>Pending withdrawals: <strong id="admin-pending-withdrawals">0</strong></div>
         </div>
 
         <h4>Pending Deposits</h4>
         <div id="admin-pending-deposits-list"></div>
 
-        <h4 style="margin-top:12px">Pending Withdrawals</h4>
+        <h4 style="margin-top:10px">Pending Withdrawals</h4>
         <div id="admin-pending-withdrawals-list"></div>
 
-        <h4 style="margin-top:12px">Activity (latest)</h4>
-        <div class="table-wrap small">
+        <h4 style="margin-top:10px">Recent Activity</h4>
+        <div class="table-wrap small" style="margin-top:8px">
           <table>
             <thead><tr><th>User</th><th>Action</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
             <tbody id="admin-activity-log"></tbody>
@@ -121,108 +250,564 @@
     </main>
   </div>
 
-  <!-- Modals (Login/Register/Deposit/Withdraw/Invest/Collect/Referral) -->
+  <!-- ===== MODALS ===== -->
   <!-- Login -->
-  <div id="login-modal" class="modal hidden" role="dialog" aria-modal="true">
+  <div id="login-modal" class="modal" style="display:none">
     <div class="modal-card">
-      <header><h3>Login</h3><button class="btn-close" id="close-login">✕</button></header>
-      <form id="login-form" class="form">
-        <label>Email</label>
+      <header style="display:flex;justify-content:space-between;align-items:center">
+        <h3>Login</h3>
+        <button id="close-login" class="btn">✕</button>
+      </header>
+      <form id="login-form" class="form" style="margin-top:8px">
+        <label class="small">Email</label>
         <input id="login-username" type="email" required />
-        <label>Password</label>
+        <label class="small">Password</label>
         <input id="login-password" type="password" required />
-        <div class="form-actions">
+        <div style="display:flex;gap:8px;margin-top:8px">
           <button type="submit" class="btn btn-primary">Login</button>
-          <a href="#" id="switch-to-register" class="link">Create account</a>
+          <button id="to-register" class="btn btn-outline" type="button">Create account</button>
         </div>
       </form>
-      <p class="muted small">Admin: <strong>declantessa@gmail.com</strong> / Password: <strong>BAMIDELE!1</strong></p>
+      <p class="muted small" style="margin-top:8px">Admin: <strong>declantessa@gmail.com</strong> / <strong>BAMIDELE!1</strong></p>
     </div>
   </div>
 
   <!-- Register -->
-  <div id="register-modal" class="modal hidden" role="dialog" aria-modal="true">
+  <div id="register-modal" class="modal" style="display:none">
     <div class="modal-card">
-      <header><h3>Register</h3><button class="btn-close" id="close-register">✕</button></header>
-      <form id="register-form" class="form">
-        <label>Email</label><input id="register-username" type="email" required />
-        <label>Password</label><input id="register-password" type="password" required />
-        <label>Referral code (optional)</label><input id="referral-code" />
-        <div class="form-actions">
+      <header style="display:flex;justify-content:space-between;align-items:center">
+        <h3>Register</h3>
+        <button id="close-register" class="btn">✕</button>
+      </header>
+      <form id="register-form" class="form" style="margin-top:8px">
+        <label class="small">Email</label><input id="register-username" type="email" required />
+        <label class="small">Password</label><input id="register-password" type="password" required />
+        <label class="small">Referral code (optional)</label><input id="referral-code" />
+        <div style="display:flex;gap:8px;margin-top:8px">
           <button type="submit" class="btn btn-primary">Register</button>
-          <a href="#" id="switch-to-login" class="link">Have an account?</a>
+          <button id="to-login" class="btn btn-outline" type="button">Have account?</button>
         </div>
       </form>
     </div>
   </div>
 
   <!-- Deposit modal -->
-  <div id="deposit-modal" class="modal hidden" role="dialog" aria-modal="true">
+  <div id="deposit-modal" class="modal" style="display:none">
     <div class="modal-card">
-      <header><h3>Submit Deposit Proof</h3><button class="btn-close" id="close-deposit">✕</button></header>
-      <div class="form">
-        <p class="muted">Send funds to Kuda Bank • 2014613557 • MUTECH INVESTMENT</p>
-        <label>Amount (₦)</label><input id="deposit-amount" type="number" min="1" />
-        <label>Upload proof (image)</label><input id="deposit-proof" type="file" accept="image/*" />
-        <div style="display:flex;gap:8px;margin-top:8px;">
+      <header style="display:flex;justify-content:space-between;align-items:center">
+        <h3>Submit Deposit Proof</h3>
+        <button id="close-deposit" class="btn">✕</button>
+      </header>
+      <div class="form" style="margin-top:8px">
+        <p class="muted small">Send funds to Kuda Bank • <strong id="acctNum2">2014613557</strong> • MUTECH INVESTMENT</p>
+        <label class="small">Amount (₦)</label><input id="deposit-amount" type="number" min="1" />
+        <label class="small">Upload proof (image)</label><input id="deposit-proof" type="file" accept="image/*" />
+        <div style="display:flex;gap:8px;margin-top:8px">
           <button id="confirm-deposit" class="btn btn-primary">Submit proof</button>
           <button id="cancel-deposit" class="btn btn-outline">Cancel</button>
         </div>
-        <div id="deposit-preview" style="margin-top:8px;"></div>
+        <div id="deposit-preview" style="margin-top:10px"></div>
       </div>
     </div>
   </div>
 
   <!-- Withdraw modal -->
-  <div id="withdraw-modal" class="modal hidden" role="dialog" aria-modal="true">
+  <div id="withdraw-modal" class="modal" style="display:none">
     <div class="modal-card">
-      <header><h3>Request Withdrawal</h3><button class="btn-close" id="close-withdraw">✕</button></header>
-      <form id="withdraw-form" class="form">
-        <label>Amount (₦)</label><input id="withdraw-amount" type="number" min="1700" />
-        <label>Bank name</label><input id="bank-name" />
-        <label>Account number</label><input id="account-number-input" />
-        <label>Account name</label><input id="account-name" />
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary">Request withdrawal</button>
-        </div>
+      <header style="display:flex;justify-content:space-between;align-items:center">
+        <h3>Request Withdrawal</h3>
+        <button id="close-withdraw" class="btn">✕</button>
+      </header>
+      <form id="withdraw-form" class="form" style="margin-top:8px">
+        <label class="small">Amount (₦)</label><input id="withdraw-amount" type="number" min="1700" />
+        <label class="small">Bank name</label><input id="bank-name" />
+        <label class="small">Account number</label><input id="account-number-input" />
+        <label class="small">Account name</label><input id="account-name" />
+        <div style="display:flex;gap:8px;margin-top:8px"><button type="submit" class="btn btn-primary">Request withdrawal</button></div>
       </form>
     </div>
   </div>
 
   <!-- Invest modal -->
-  <div id="invest-modal" class="modal hidden" role="dialog" aria-modal="true">
+  <div id="invest-modal" class="modal" style="display:none">
     <div class="modal-card">
-      <header><h3>Make an investment</h3><button class="btn-close" id="close-invest">✕</button></header>
-      <div class="form">
-        <label>Plan</label>
+      <header style="display:flex;justify-content:space-between;align-items:center">
+        <h3>Make an investment</h3>
+        <button id="close-invest" class="btn">✕</button>
+      </header>
+      <div class="form" style="margin-top:8px">
+        <label class="small">Plan</label>
         <select id="invest-plan-select"><option value="starter">Starter</option><option value="premium">Premium</option><option value="executive">Executive</option></select>
-        <label>Amount (₦)</label><input id="invest-amount" type="number" />
-        <div class="form-actions"><button id="confirm-invest" class="btn btn-primary">Invest</button></div>
+        <label class="small">Amount (₦)</label><input id="invest-amount" type="number" />
+        <div style="display:flex;gap:8px;margin-top:8px"><button id="confirm-invest" class="btn btn-primary">Invest</button></div>
       </div>
     </div>
   </div>
 
   <!-- Collect modal -->
-  <div id="collect-modal" class="modal hidden" role="dialog" aria-modal="true">
+  <div id="collect-modal" class="modal" style="display:none">
     <div class="modal-card">
-      <header><h3>Collect Profit</h3><button class="btn-close" id="close-collect">✕</button></header>
-      <div id="collect-details" class="form"></div>
-      <div class="form-actions"><button id="confirm-collect" class="btn btn-primary">Confirm collect</button></div>
+      <header style="display:flex;justify-content:space-between;align-items:center">
+        <h3>Collect Profit</h3>
+        <button id="close-collect" class="btn">✕</button>
+      </header>
+      <div id="collect-details" class="form" style="margin-top:8px"></div>
+      <div style="display:flex;gap:8px;margin-top:8px"><button id="confirm-collect" class="btn btn-primary">Confirm collect</button></div>
     </div>
   </div>
 
   <!-- Referral modal -->
-  <div id="referral-modal" class="modal hidden" role="dialog" aria-modal="true">
+  <div id="referral-modal" class="modal" style="display:none">
     <div class="modal-card">
-      <header><h3>Referral</h3><button class="btn-close" id="close-referral">✕</button></header>
-      <div class="form">
-        <label>Share link</label><input id="referral-link" readonly />
-        <p>Earned: ₦<span id="referral-earnings-modal">0</span></p>
-        <p>Referrals: <span id="referral-count">0</span></p>
-        <div class="form-actions"><button id="copy-referral" class="btn">Copy</button></div>
+      <header style="display:flex;justify-content:space-between;align-items:center">
+        <h3>Referral</h3>
+        <button id="close-referral" class="btn">✕</button>
+      </header>
+      <div class="form" style="margin-top:8px">
+        <label class="small">Share link</label><input id="referral-link" readonly />
+        <p class="muted small">Earned: ₦<span id="referral-earnings-modal">0</span></p>
+        <p class="muted small">Referrals: <span id="referral-count">0</span></p>
+        <div style="display:flex;gap:8px;margin-top:8px"><button id="copy-referral" class="btn btn-primary">Copy</button></div>
       </div>
     </div>
   </div>
 
+<script>
+/* ===========================
+   MUTECH single-file app.js
+   =========================== */
+
+/* Admin credentials (as requested) */
+const ADMIN_CREDENTIALS = { email:'declantessa@gmail.com', password:'BAMIDELE!1' };
+
+/* Storage keys and helpers */
+const KEYS = {
+  USERS: 'mutech_users',
+  ACTIVITY: 'mutech_activity',
+  PENDING_DEPOSITS: 'mutech_pending_deposits',
+  PENDING_WITHDRAWS: 'mutech_pending_withdrawals',
+  LOGGED_IN: 'mutech_logged_in',
+  IS_ADMIN: 'mutech_is_admin'
+};
+const safeParse = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch(e){ return d; } };
+const saveKey = (k,v) => localStorage.setItem(k, JSON.stringify(v));
+
+/* Ensure default storage */
+if (!localStorage.getItem(KEYS.USERS)) saveKey(KEYS.USERS, {});
+if (!localStorage.getItem(KEYS.ACTIVITY)) saveKey(KEYS.ACTIVITY, []);
+if (!localStorage.getItem(KEYS.PENDING_DEPOSITS)) saveKey(KEYS.PENDING_DEPOSITS, []);
+if (!localStorage.getItem(KEYS.PENDING_WITHDRAWS)) saveKey(KEYS.PENDING_WITHDRAWS, []);
+
+/* Short DOM helpers */
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const el = (t, props={}) => Object.assign(document.createElement(t), props);
+
+/* Elements */
+const acctNum = $('#acctNum');
+const acctNum2 = $('#acctNum2');
+const copyAcctBtn = $('#copyAcctBtn');
+const copyMsg = $('#copyMsg');
+const openDepositBtn = $('#open-deposit-modal');
+const depositModal = $('#deposit-modal');
+const registerModal = $('#register-modal');
+const loginModal = $('#login-modal');
+const dashboardEl = $('#dashboard');
+const landingEl = $('#landing');
+const adminPanel = $('#admin-panel');
+const userMenu = $('#user-menu');
+const authButtons = $('#auth-buttons');
+const usernameDisplay = $('#username-display');
+const adminBtn = $('#admin-panel-btn');
+
+/* Forms & inputs */
+const registerForm = $('#register-form');
+const loginForm = $('#login-form');
+const depositAmount = $('#deposit-amount');
+const depositProof = $('#deposit-proof');
+const confirmDeposit = $('#confirm-deposit');
+const depositPreview = $('#deposit-preview');
+const cancelDeposit = $('#cancel-deposit');
+const withdrawForm = $('#withdraw-form');
+const investModal = $('#invest-modal');
+const confirmInvest = $('#confirm-invest');
+
+/* Admin lists */
+const adminPendingDepositsList = $('#admin-pending-deposits-list');
+const adminPendingWithdrawalsList = $('#admin-pending-withdrawals-list');
+const adminActivityLog = $('#admin-activity-log');
+const adminTotalUsers = $('#admin-total-users');
+const adminTotalInvestments = $('#admin-total-investments');
+const adminPendingDeposits = $('#admin-pending-deposits');
+const adminPendingWithdrawals = $('#admin-pending-withdrawals');
+
+/* Theme & background control */
+const themeToggle = $('#theme-toggle');
+const motionToggle = $('#motion-toggle');
+let backgroundAnimated = false;
+
+/* Set account numbers in modal and box */
+acctNum.textContent = '2014613557';
+acctNum2.textContent = '2014613557';
+
+/* Copy account number */
+copyAcctBtn?.addEventListener('click', async () => {
+  try{ await navigator.clipboard.writeText(acctNum.textContent); copyMsg.style.display='block'; setTimeout(()=>copyMsg.style.display='none',1400); }
+  catch(e){ alert('Copy failed'); }
+});
+
+/* Modal open/close helpers */
+const show = el => el && (el.style.display = '');
+const hide = el => el && (el.style.display = 'none');
+
+/* Login/Register wiring */
+$('#login-btn')?.addEventListener('click', ()=> show(loginModal));
+$('#register-btn')?.addEventListener('click', ()=> show(registerModal));
+$('#close-login')?.addEventListener('click', ()=> hide(loginModal));
+$('#close-register')?.addEventListener('click', ()=> hide(registerModal));
+$('#to-register')?.addEventListener('click', ()=> { hide(loginModal); show(registerModal); });
+$('#to-login')?.addEventListener('click', ()=> { hide(registerModal); show(loginModal); });
+
+/* Deposit modal wiring */
+$('#open-deposit-modal')?.addEventListener('click', ()=> show(depositModal));
+$('#deposit-btn')?.addEventListener('click', ()=> show(depositModal));
+$('#close-deposit')?.addEventListener('click', ()=> { hide(depositModal); depositPreview.innerHTML=''; depositAmount.value=''; depositProof.value=''; });
+cancelDeposit?.addEventListener('click', ()=> { hide(depositModal); depositPreview.innerHTML=''; depositAmount.value=''; depositProof.value=''; });
+
+/* Register handler */
+registerForm?.addEventListener('submit', (ev)=>{
+  ev.preventDefault();
+  const username = $('#register-username').value.trim().toLowerCase();
+  const password = $('#register-password').value;
+  const referral = $('#referral-code').value.trim();
+  if(!username || !password) return alert('Complete the form');
+  const users = safeParse(KEYS.USERS, {});
+  if(users[username]) return alert('User exists');
+  const referralCode = Math.random().toString(36).substring(2,8).toUpperCase();
+  users[username] = { username, password, referralCode, wallet:1000, activeInvestments:[], referralEarnings:0, referredBy: referral||null };
+  // referral flow
+  if(referral){
+    const ref = Object.values(users).find(u => u.referralCode === referral);
+    if(ref){ ref.referralEarnings = (ref.referralEarnings||0) + 200; users[ref.username] = ref; users[username].wallet += 200; }
+  }
+  saveKey(KEYS.USERS, users);
+  localStorage.setItem(KEYS.LOGGED_IN, username);
+  localStorage.setItem(KEYS.IS_ADMIN, 'false');
+  logActivity(username,'register',0,'completed');
+  hide(registerModal);
+  updateUIAfterLogin();
+  alert(`Welcome ${username}! ₦1,000 credited`);
+});
+
+/* Login handler */
+loginForm?.addEventListener('submit', (ev)=>{
+  ev.preventDefault();
+  const username = $('#login-username').value.trim().toLowerCase();
+  const password = $('#login-password').value;
+  // admin check
+  if(username === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password){
+    localStorage.setItem(KEYS.LOGGED_IN, username);
+    localStorage.setItem(KEYS.IS_ADMIN, 'true');
+    hide(loginModal);
+    updateUIAfterLogin();
+    return;
+  }
+  const users = safeParse(KEYS.USERS, {});
+  if(users[username] && users[username].password === password){
+    localStorage.setItem(KEYS.LOGGED_IN, username);
+    localStorage.setItem(KEYS.IS_ADMIN, 'false');
+    logActivity(username,'login',0,'completed');
+    hide(loginModal);
+    updateUIAfterLogin();
+  } else alert('Invalid credentials');
+});
+
+/* Update UI after login */
+function updateUIAfterLogin(){
+  const username = localStorage.getItem(KEYS.LOGGED_IN);
+  if(!username) return;
+  const isAdmin = localStorage.getItem(KEYS.IS_ADMIN) === 'true';
+  authButtons.style.display = 'none';
+  userMenu.style.display = 'inline-flex';
+  usernameDisplay.textContent = isAdmin ? 'Admin' : username;
+  if(isAdmin){ adminPanel.style.display='block'; dashboardEl.style.display='none'; adminBtn.style.display='inline-block'; renderAdminPanel(); } 
+  else { dashboardEl.style.display='block'; adminPanel.style.display='none'; adminBtn.style.display='none'; updateUserDashboard(); }
+  landingEl.style.display='none';
+}
+
+/* Logout */
+$('#logout-btn')?.addEventListener('click', ()=> {
+  localStorage.setItem(KEYS.LOGGED_IN, '');
+  localStorage.setItem(KEYS.IS_ADMIN, 'false');
+  location.reload();
+});
+
+/* Deposit proof preview */
+depositProof?.addEventListener('change', (e)=>{
+  const f = e.target.files[0];
+  if(!f){ depositPreview.innerHTML=''; return; }
+  const r = new FileReader();
+  r.onload = ev => depositPreview.innerHTML = `<img src="${ev.target.result}" alt="proof" style="max-width:200px;border-radius:8px;border:1px solid rgba(255,255,255,0.06)"/>`;
+  r.readAsDataURL(f);
+});
+
+/* Submit deposit (stores pending deposit with base64 preview — demo only) */
+confirmDeposit?.addEventListener('click', ()=>{
+  const amt = Number(depositAmount.value || 0);
+  const file = depositProof.files[0];
+  if(!amt || amt <= 0) return alert('Enter valid amount');
+  if(!file) return alert('Upload proof image');
+  const username = localStorage.getItem(KEYS.LOGGED_IN) || 'guest';
+  const pending = safeParse(KEYS.PENDING_DEPOSITS, []);
+  const reader = new FileReader();
+  reader.onload = function(e){
+    pending.push({ username, amount: amt, date: new Date().toLocaleString(), proofName: file.name, proofData: e.target.result, bank:'Kuda Bank', account: acctNum.textContent });
+    saveKey(KEYS.PENDING_DEPOSITS, pending);
+    logActivity(username, 'deposit', amt, 'pending');
+    hide(depositModal);
+    depositPreview.innerHTML=''; depositAmount.value=''; depositProof.value='';
+    renderAdminPanel(); alert('Deposit submitted — pending admin approval');
+  };
+  reader.readAsDataURL(file);
+});
+
+/* Withdraw form */
+withdrawForm?.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const amount = Number($('#withdraw-amount').value || 0);
+  const bankName = $('#bank-name').value.trim();
+  const accountNumber = $('#account-number-input').value.trim();
+  const accountName = $('#account-name').value.trim();
+  if(amount < 1700) return alert('Minimum withdrawal is ₦1,700');
+  const username = localStorage.getItem(KEYS.LOGGED_IN);
+  if(!username) return alert('Login required');
+  const users = safeParse(KEYS.USERS, {});
+  const user = users[username];
+  if(!user || amount > (user.wallet||0)) return alert('Insufficient funds');
+  user.wallet = (user.wallet||0) - amount;
+  users[username] = user;
+  saveKey(KEYS.USERS, users);
+  const pendingW = safeParse(KEYS.PENDING_WITHDRAWS, []);
+  pendingW.push({ username, amount, bankName, accountNumber, accountName, date: new Date().toLocaleString() });
+  saveKey(KEYS.PENDING_WITHDRAWS, pendingW);
+  logActivity(username, 'withdrawal', amount, 'pending');
+  hide($('#withdraw-modal'));
+  updateUserDashboard();
+  renderAdminPanel();
+  alert('Withdrawal requested — pending admin approval');
+});
+
+/* Invest flow */
+confirmInvest?.addEventListener('click', ()=>{
+  const amount = Number($('#invest-amount').value || 0);
+  const plan = $('#invest-plan-select').value;
+  const planDetails = { starter:{min:1000,max:10000,roi:20}, premium:{min:10000,max:50000,roi:50}, executive:{min:50000,max:500000,roi:100} };
+  const details = planDetails[plan];
+  if(!details) return alert('Choose a plan');
+  if(amount < details.min || amount > details.max) return alert(`Amount must be between ₦${details.min.toLocaleString()} and ₦${details.max.toLocaleString()}`);
+  const username = localStorage.getItem(KEYS.LOGGED_IN);
+  if(!username) return alert('Login required');
+  const users = safeParse(KEYS.USERS, {});
+  const user = users[username];
+  if(!user || amount > (user.wallet||0)) return alert('Insufficient funds');
+  user.wallet -= amount; user.activeInvestments = user.activeInvestments||[]; user.activeInvestments.push({ plan, amount, roi: details.roi, date: new Date().toLocaleDateString(), collected:false });
+  users[username] = user; saveKey(KEYS.USERS, users);
+  logActivity(username, 'investment', amount, 'completed');
+  hide($('#invest-modal')); updateUserDashboard(); renderAdminPanel();
+  alert(`Investment of ₦${amount.toLocaleString()} successful`);
+});
+
+/* Collect profit helper (attached globally) */
+window.collectProfit = (index) => {
+  const username = localStorage.getItem(KEYS.LOGGED_IN);
+  if(!username) return alert('Login required');
+  const users = safeParse(KEYS.USERS, {});
+  const user = users[username];
+  if(!user || !user.activeInvestments || !user.activeInvestments[index]) return alert('Invalid investment');
+  const inv = user.activeInvestments[index];
+  const profit = Math.floor((inv.amount * inv.roi)/100);
+  const total = inv.amount + profit;
+  $('#collect-details').innerHTML = `<div>Plan: ${inv.plan}</div><div>Principal: ₦${inv.amount.toLocaleString()}</div><div>Profit: ₦${profit.toLocaleString()}</div><div><strong>Total: ₦${total.toLocaleString()}</strong></div>`;
+  show($('#collect-modal'));
+  $('#confirm-collect').onclick = () => {
+    user.wallet = (user.wallet||0) + total; inv.collected = true; users[username] = user; saveKey(KEYS.USERS, users);
+    logActivity(username, 'profit_collection', total, 'completed'); hide($('#collect-modal')); updateUserDashboard(); renderAdminPanel(); alert(`Collected ₦${total.toLocaleString()}`);
+  };
+};
+
+/* Referral */
+$('#referral-btn')?.addEventListener('click', ()=>{
+  const username = localStorage.getItem(KEYS.LOGGED_IN);
+  if(!username) return alert('Login required');
+  const users = safeParse(KEYS.USERS, {}), user = users[username];
+  $('#referral-link').value = `${location.origin}${location.pathname}?ref=${user.referralCode}`;
+  $('#referral-earnings-modal').textContent = (user.referralEarnings||0).toLocaleString();
+  $('#referral-count').textContent = Object.values(users).filter(u => u.referredBy === user.referralCode).length;
+  show($('#referral-modal'));
+});
+$('#copy-referral')?.addEventListener('click', ()=>{ const input = $('#referral-link'); input.select(); document.execCommand('copy'); alert('Referral copied'); });
+
+/* Logging activity */
+function logActivity(username, action, amount=0, status='pending'){
+  const acts = safeParse(KEYS.ACTIVITY, []); acts.push({ username, action, amount, status, date: new Date().toLocaleString() }); saveKey(KEYS.ACTIVITY, acts);
+}
+
+/* Render user dashboard */
+function updateUserDashboard(){
+  const username = localStorage.getItem(KEYS.LOGGED_IN);
+  if(!username) return;
+  const users = safeParse(KEYS.USERS, {}), user = users[username];
+  if(!user) return;
+  $('#wallet-balance').textContent = `₦${(user.wallet||0).toLocaleString()}`;
+  $('#active-investments').textContent = `₦${((user.activeInvestments||[]).reduce((s,i)=>s+(i.amount||0),0)).toLocaleString()}`;
+  $('#referral-earnings').textContent = `₦${(user.referralEarnings||0).toLocaleString()}`;
+
+  const tbody = $('#investment-history'); tbody.innerHTML='';
+  (user.activeInvestments||[]).forEach((inv, idx) => {
+    const tr = el('tr'); const status = inv.collected ? 'Collected' : 'Active';
+    tr.innerHTML = `<td>${inv.plan.charAt(0).toUpperCase()+inv.plan.slice(1)}</td><td>₦${(inv.amount||0).toLocaleString()}</td><td>${inv.roi}%</td><td>${status}</td><td>${inv.date}</td><td>${inv.collected?'-':(new Date().toDateString() ? '-' : '-')}</td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+/* Render admin panel */
+function renderAdminPanel(){
+  const users = safeParse(KEYS.USERS, {}), acts = safeParse(KEYS.ACTIVITY, []), pendingDeposits = safeParse(KEYS.PENDING_DEPOSITS, []), pendingWithdrawals = safeParse(KEYS.PENDING_WITHDRAWS, []);
+  adminTotalUsers.textContent = Object.keys(users).length;
+  adminTotalInvestments.textContent = Object.values(users).reduce((sum,u)=>sum + (u.activeInvestments||[]).reduce((s,i)=>s+(i.amount||0),0),0).toLocaleString();
+  adminPendingDeposits.textContent = pendingDeposits.length;
+  adminPendingWithdrawals.textContent = pendingWithdrawals.length;
+
+  /* activities */
+  adminActivityLog.innerHTML = '';
+  acts.slice(-20).reverse().forEach(a=>{
+    const tr = el('tr'); tr.innerHTML = `<td>${a.username}</td><td>${a.action}</td><td>₦${(a.amount||0).toLocaleString()}</td><td>${a.status}</td><td>${a.date}</td>`; adminActivityLog.appendChild(tr);
+  });
+
+  /* pending deposits */
+  adminPendingDepositsList.innerHTML = '';
+  pendingDeposits.forEach((d, i) => {
+    const wrapper = el('div'); wrapper.className = 'card'; wrapper.style.marginBottom='8px';
+    wrapper.innerHTML = `<strong>${d.username}</strong><div class="muted">₦${d.amount.toLocaleString()}</div><div class="muted small">${d.date}</div><div style="margin-top:8px"><img src="${d.proofData}" style="max-width:240px;border-radius:8px;border:1px solid rgba(255,255,255,0.06);display:block;margin-bottom:8px" /><div style="display:flex;gap:8px"><button data-idx="${i}" class="approve-dep btn btn-primary">Approve</button><button data-idx="${i}" class="reject-dep btn btn-outline">Reject</button></div></div>`;
+    adminPendingDepositsList.appendChild(wrapper);
+  });
+
+  /* pending withdrawals */
+  adminPendingWithdrawalsList.innerHTML = '';
+  pendingWithdrawals.forEach((w,i)=>{
+    const wrapper = el('div'); wrapper.className='card'; wrapper.style.marginBottom='8px';
+    wrapper.innerHTML = `<strong>${w.username}</strong><div class="muted">₦${w.amount.toLocaleString()} • ${w.bankName} ${w.accountNumber}</div><div class="muted small">${w.date}</div><div style="margin-top:8px"><button data-idx="${i}" class="approve-w btn btn-primary">Approve</button></div>`;
+    adminPendingWithdrawalsList.appendChild(wrapper);
+  });
+}
+
+/* delegate admin approve/reject clicks */
+document.addEventListener('click', (e)=>{
+  const approveDep = e.target.closest('.approve-dep');
+  const rejectDep = e.target.closest('.reject-dep');
+  const approveW = e.target.closest('.approve-w');
+
+  if(approveDep){
+    const idx = Number(approveDep.dataset.idx);
+    const pend = safeParse(KEYS.PENDING_DEPOSITS, []); const dep = pend[idx]; if(!dep) return alert('Not found');
+    const users = safeParse(KEYS.USERS, {}); users[dep.username] = users[dep.username] || { username:dep.username, password:'', wallet:0, activeInvestments:[], referralEarnings:0 };
+    users[dep.username].wallet = (users[dep.username].wallet||0) + dep.amount; users[dep.username].deposited = true; saveKey(KEYS.USERS, users);
+    pend.splice(idx,1); saveKey(KEYS.PENDING_DEPOSITS, pend);
+    logActivity(dep.username,'deposit_approved',dep.amount,'completed'); renderAdminPanel(); alert('Deposit approved');
+  }
+  if(rejectDep){
+    const idx = Number(rejectDep.dataset.idx);
+    const pend = safeParse(KEYS.PENDING_DEPOSITS, []); pend.splice(idx,1); saveKey(KEYS.PENDING_DEPOSITS, pend); renderAdminPanel(); alert('Deposit rejected');
+  }
+  if(approveW){
+    const idx = Number(approveW.dataset.idx);
+    const pendW = safeParse(KEYS.PENDING_WITHDRAWS, []); const wit = pendW[idx]; if(!wit) return alert('Not found');
+    pendW.splice(idx,1); saveKey(KEYS.PENDING_WITHDRAWS, pendW);
+    logActivity(wit.username,'withdrawal_approved',wit.amount,'completed'); renderAdminPanel(); alert('Withdrawal approved (demo)');
+  }
+});
+
+/* activity helper */
+function saveKey(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+
+/* initial UI state if already logged in */
+(function boot(){
+  const logged = localStorage.getItem(KEYS.LOGGED_IN);
+  if(logged) updateUIAfterLogin();
+  renderAdminPanel();
+})();
+
+/* Theme toggle & motion toggle */
+themeToggle?.addEventListener('click', ()=>{
+  document.body.classList.toggle('light');
+  themeToggle.textContent = document.body.classList.contains('light') ? 'Dark' : 'Light';
+});
+motionToggle?.addEventListener('click', ()=>{
+  backgroundAnimated = !backgroundAnimated;
+  motionToggle.textContent = backgroundAnimated ? 'Disable background motion' : 'Enable background motion';
+  if(backgroundAnimated) startBackgroundAnimation();
+});
+
+/* ============== 3D Background (static by default) ============== */
+(function init3D(){
+  const canvas = document.getElementById('bg-canvas');
+  if(!canvas || typeof THREE === 'undefined') return;
+  // scene + camera
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000);
+  camera.position.z = 6;
+  const renderer = new THREE.WebGLRenderer({ canvas, alpha:true, antialias:true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+
+  // subtle particle field shaped in depth (static render)
+  const count = 1500;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(count * 3);
+  for(let i=0;i<positions.length;i++){
+    positions[i] = (Math.random() - 0.5) * 12;
+  }
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const material = new THREE.PointsMaterial({ size: 0.02, color: 0x99abff, transparent:true, opacity:0.9 });
+  const points = new THREE.Points(geometry, material);
+  scene.add(points);
+
+  // soft gradient plane (very low opacity) for depth
+  const planeGeo = new THREE.PlaneGeometry(30,30);
+  const planeMat = new THREE.MeshBasicMaterial({ color: 0x0b1220, transparent:true, opacity:0.12, side: THREE.DoubleSide });
+  const plane = new THREE.Mesh(planeGeo, planeMat);
+  plane.position.z = -2.5;
+  scene.add(plane);
+
+  // Render once (static)
+  renderer.render(scene, camera);
+
+  // Start gentle animation only when user toggles motion on
+  let animId = null;
+  window.startBackgroundAnimation = () => {
+    if(animId) return;
+    function anim(){
+      points.rotation.x += 0.0005;
+      points.rotation.y += 0.0007;
+      renderer.render(scene, camera);
+      animId = requestAnimationFrame(anim);
+    }
+    anim();
+  };
+  window.stopBackgroundAnimation = () => {
+    if(animId) { cancelAnimationFrame(animId); animId = null; renderer.render(scene, camera); }
+  };
+
+  // ensure canvas resizes
+  window.addEventListener('resize', ()=>{
+    camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight);
+    if(!backgroundAnimated) renderer.render(scene, camera);
+  });
+})(); /* init3D */
+
+/* Accessibility: close modals on ESC */
+document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape'){ $$('[class^=modal]').forEach(m=>m.style.display='none'); } });
+
+</script>
 </body>
-              </html>
+                                               </html>
