@@ -1,391 +1,293 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mutech Investment Platform</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>MUTECH — Investment Platform (Demo)</title>
+
+  <!-- Google font (optional) -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Three.js (CDN) – optional, used for animated background -->
+  <script src="https://unpkg.com/three@0.161.0/build/three.min.js" defer></script>
+  <script src="app.js" defer></script>
 </head>
 <body>
-    <canvas id="bg-canvas"></canvas>
+  <!-- animated background canvas -->
+  <canvas id="bg-canvas" aria-hidden="true"></canvas>
 
-    <div class="content-wrapper">
-        <!-- Navigation -->
-        <nav class="gradient-bg shadow-2xl">
-            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-                <div class="flex items-center space-x-2">
-                    <i class="fas fa-chart-line text-2xl"></i>
-                    <span class="text-xl font-bold">MUTECH 3D</span>
-                </div>
-                <div id="auth-buttons">
-                    <button id="login-btn" class="px-4 py-2 rounded-lg bg-white text-purple-600 font-semibold hover:bg-gray-100 transition">Login</button>
-                    <button id="register-btn" class="px-4 py-2 rounded-lg bg-transparent border-2 border-white text-white font-semibold hover:bg-white hover:text-purple-600 transition ml-2">Register</button>
-                </div>
-                <div id="user-menu" class="hidden flex items-center space-x-4">
-                    <span id="username-display" class="font-medium"></span>
-                    <button id="admin-panel-btn" class="hidden px-4 py-2 rounded-lg admin-badge text-white font-semibold">Admin</button>
-                    <button id="logout-btn" class="px-4 py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition">Logout</button>
-                </div>
-            </div>
-        </nav>
-
-        <!-- Main Content -->
-        <main class="container mx-auto px-4 py-8">
-            <!-- Dashboard -->
-            <div id="dashboard" class="hidden">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <!-- Balance Card -->
-                    <div class="glass-effect rounded-2xl p-6 card-3d">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold">Wallet Balance</h3>
-                            <i class="fas fa-wallet text-3xl text-yellow-400"></i>
-                        </div>
-                        <p class="text-4xl font-bold mb-4">₦<span id="wallet-balance">0</span></p>
-                        <div class="flex space-x-2">
-                            <button id="deposit-btn" class="flex-1 btn-primary text-white px-4 py-2 rounded-lg font-medium">Deposit</button>
-                            <button id="withdraw-btn" class="flex-1 bg-gray-700 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-600 transition">Withdraw</button>
-                        </div>
-                    </div>
-
-                    <!-- Active Investments Card -->
-                    <div class="glass-effect rounded-2xl p-6 card-3d">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold">Active Investments</h3>
-                            <i class="fas fa-chart-line text-3xl text-green-400"></i>
-                        </div>
-                        <p class="text-4xl font-bold mb-4">₦<span id="active-investments">0</span></p>
-                        <button id="invest-btn" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition">Invest Now</button>
-                    </div>
-
-                    <!-- Referral Earnings Card -->
-                    <div class="glass-effect rounded-2xl p-6 card-3d">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold">Referral Earnings</h3>
-                            <i class="fas fa-users text-3xl text-blue-400"></i>
-                        </div>
-                        <p class="text-4xl font-bold mb-4">₦<span id="referral-earnings">0</span></p>
-                        <button id="referral-btn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">Share Link</button>
-                    </div>
-                </div>
-
-                <!-- Investment Packages -->
-                <div class="glass-effect rounded-2xl p-6 mb-8">
-                    <h2 class="text-2xl font-bold mb-6">Investment Packages</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl p-6 card-3d">
-                            <h3 class="text-xl font-bold mb-2">Starter Plan</h3>
-                            <p class="mb-4 text-sm">20% ROI in 7 days</p>
-                            <p class="text-3xl font-bold mb-4">₦1,000 - ₦10,000</p>
-                            <button data-plan="starter" class="invest-plan-btn w-full bg-white text-purple-600 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">Invest</button>
-                        </div>
-                        <div class="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl p-6 card-3d">
-                            <h3 class="text-xl font-bold mb-2">Premium Plan</h3>
-                            <p class="mb-4 text-sm">50% ROI in 14 days</p>
-                            <p class="text-3xl font-bold mb-4">₦10,000 - ₦50,000</p>
-                            <button data-plan="premium" class="invest-plan-btn w-full bg-white text-blue-600 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">Invest</button>
-                        </div>
-                        <div class="bg-gradient-to-br from-yellow-500 to-red-500 rounded-xl p-6 card-3d">
-                            <h3 class="text-xl font-bold mb-2">Executive Plan</h3>
-                            <p class="mb-4 text-sm">100% ROI in 30 days</p>
-                            <p class="text-3xl font-bold mb-4">₦50,000 - ₦500,000</p>
-                            <button data-plan="executive" class="invest-plan-btn w-full bg-white text-red-600 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">Invest</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Investment History -->
-                <div class="glass-effect rounded-2xl p-6">
-                    <h2 class="text-2xl font-bold mb-6">Investment History</h2>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-left">
-                            <thead class="border-b border-gray-600">
-                                <tr>
-                                    <th class="px-4 py-3">Plan</th>
-                                    <th class="px-4 py-3">Amount</th>
-                                    <th class="px-4 py-3">ROI</th>
-                                    <th class="px-4 py-3">Status</th>
-                                    <th class="px-4 py-3">Date</th>
-                                    <th class="px-4 py-3">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="investment-history"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Admin Panel -->
-            <div id="admin-panel" class="hidden">
-                <div class="glass-effect rounded-2xl p-6 mb-8">
-                    <h2 class="text-3xl font-bold mb-6 flex items-center">
-                        <i class="fas fa-shield-alt mr-3 text-pink-400"></i>
-                        Admin Dashboard
-                    </h2>
-
-                    <!-- Stats Overview -->
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                        <div class="bg-gradient-to-br from-green-500 to-green-700 rounded-xl p-4">
-                            <p class="text-sm mb-2">Total Users</p>
-                            <p class="text-3xl font-bold" id="admin-total-users">0</p>
-                        </div>
-                        <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl p-4">
-                            <p class="text-sm mb-2">Total Investments</p>
-                            <p class="text-3xl font-bold">₦<span id="admin-total-investments">0</span></p>
-                        </div>
-                        <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl p-4">
-                            <p class="text-sm mb-2">Pending Deposits</p>
-                            <p class="text-3xl font-bold" id="admin-pending-deposits">0</p>
-                        </div>
-                        <div class="bg-gradient-to-br from-red-500 to-red-700 rounded-xl p-4">
-                            <p class="text-sm mb-2">Pending Withdrawals</p>
-                            <p class="text-3xl font-bold" id="admin-pending-withdrawals">0</p>
-                        </div>
-                    </div>
-
-                    <!-- User Activity -->
-                    <div class="mb-8">
-                        <h3 class="text-xl font-bold mb-4">Recent User Activity</h3>
-                        <div class="overflow-x-auto">
-                            <table class="w-full text-left text-sm">
-                                <thead class="border-b border-gray-600">
-                                    <tr>
-                                        <th class="px-4 py-3">Username</th>
-                                        <th class="px-4 py-3">Action</th>
-                                        <th class="px-4 py-3">Amount</th>
-                                        <th class="px-4 py-3">Status</th>
-                                        <th class="px-4 py-3">Date</th>
-                                        <th class="px-4 py-3">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="admin-activity-log"></tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    <!-- Deposit Confirmations -->
-                    <div class="mb-8">
-                        <h3 class="text-xl font-bold mb-4">Pending Deposit Confirmations</h3>
-                        <div id="admin-pending-deposits-list" class="space-y-3"></div>
-                    </div>
-
-                    <!-- Withdrawal Requests -->
-                    <div>
-                        <h3 class="text-xl font-bold mb-4">Pending Withdrawal Requests</h3>
-                        <div id="admin-pending-withdrawals-list" class="space-y-3"></div>
-                    </div>
-                </div>
-            </div>
-        </main>
-
-        <!-- ALL MODALS GO HERE (Login, Register, Deposit, Withdraw, Invest, Referral, Collect) -->
-        <!-- Login Modal -->
-        <div id="login-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
-            <div class="glass-effect rounded-2xl w-full max-w-md p-6 mx-4 slide-in">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">Login</h2>
-                    <button id="close-login" class="text-gray-400 hover:text-white text-2xl">&times;</button>
-                </div>
-                <form id="login-form">
-                    <div class="mb-4">
-                        <label class="block mb-2 text-sm">Username</label>
-                        <input type="text" id="login-username" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" required>
-                    </div>
-                    <div class="mb-6">
-                        <label class="block mb-2 text-sm">Password</label>
-                        <input type="password" id="login-password" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" required>
-                    </div>
-                    <button type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">Login</button>
-                    <p class="text-center text-sm mt-4 text-gray-400">Don't have an account? <a href="#" id="switch-to-register" class="text-purple-400 hover:text-purple-300">Register</a></p>
-                </form>
-            </div>
+  <div class="content-wrapper">
+    <nav class="nav glass-effect">
+      <div class="nav-inner container">
+        <div class="brand">
+          <h1 class="logo">MUTECH</h1>
+          <small class="tagline">Investment Platform</small>
+        </div>
+        <div id="auth-buttons" class="auth-buttons">
+          <button id="login-btn" class="btn btn-primary">Login</button>
+          <button id="register-btn" class="btn btn-outline">Register</button>
         </div>
 
-        <!-- Register Modal -->
-        <div id="register-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
-            <div class="glass-effect rounded-2xl w-full max-w-md p-6 mx-4 slide-in">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">Register</h2>
-                    <button id="close-register" class="text-gray-400 hover:text-white text-2xl">&times;</button>
-                </div>
-                <form id="register-form">
-                    <div class="mb-4">
-                        <label class="block mb-2 text-sm">Username</label>
-                        <input type="text" id="register-username" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block mb-2 text-sm">Password</label>
-                        <input type="password" id="register-password" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" required>
-                    </div>
-                    <div class="mb-6">
-                        <label class="block mb-2 text-sm">Referral Code (Optional)</label>
-                        <input type="text" id="referral-code" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none">
-                    </div>
-                    <button type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">Register</button>
-                    <p class="text-center text-sm mt-4 text-gray-400">Already have an account? <a href="#" id="switch-to-login" class="text-purple-400 hover:text-purple-300">Login</a></p>
-                </form>
+        <div id="user-menu" class="user-menu hidden">
+          <span id="username-display" class="username">User</span>
+          <button id="logout-btn" class="btn btn-ghost">Logout</button>
+          <button id="admin-panel-btn" class="btn admin-badge hidden">Admin</button>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container main-grid">
+      <!-- Dashboard (shown when logged in) -->
+      <section id="dashboard" class="card card-3d hidden">
+        <header class="card-header">
+          <h2>Dashboard</h2>
+          <div class="wallet">
+            <div>
+              <small>Balance</small>
+              <div id="wallet-balance" class="wallet-value">₦0</div>
             </div>
+            <div>
+              <small>Active Investments</small>
+              <div id="active-investments" class="wallet-value">₦0</div>
+            </div>
+            <div>
+              <small>Referral Earnings</small>
+              <div id="referral-earnings" class="wallet-value">₦0</div>
+            </div>
+          </div>
+        </header>
+
+        <div class="card-body">
+          <div class="actions">
+            <button id="deposit-btn" class="btn btn-primary">Deposit</button>
+            <button id="withdraw-btn" class="btn btn-outline">Withdraw</button>
+            <button id="invest-btn" class="btn btn-primary">Invest</button>
+            <button id="referral-btn" class="btn btn-ghost">Referral</button>
+          </div>
+
+          <h3>Investment History</h3>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Plan</th><th>Amount</th><th>ROI</th><th>Status</th><th>Date</th><th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="investment-history">
+                <!-- populated by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Admin panel -->
+      <section id="admin-panel" class="card glass-effect hidden">
+        <h2>Admin Panel</h2>
+        <div class="admin-stats">
+          <div>Total users: <span id="admin-total-users">0</span></div>
+          <div>Total investments: <span id="admin-total-investments">0</span></div>
+          <div>Pending deposits: <span id="admin-pending-deposits">0</span></div>
+          <div>Pending withdrawals: <span id="admin-pending-withdrawals">0</span></div>
         </div>
 
-        <!-- Deposit Modal -->
-        <div id="deposit-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
-            <div class="glass-effect rounded-2xl w-full max-w-md p-6 mx-4 slide-in">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">Deposit Funds</h2>
-                    <button id="close-deposit" class="text-gray-400 hover:text-white text-2xl">&times;</button>
-                </div>
-                <div class="mb-4">
-                    <label class="block mb-2 text-sm">Amount (₦)</label>
-                    <input type="number" id="deposit-amount" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" placeholder="Enter amount">
-                </div>
-                <div class="bg-gray-800 rounded-lg p-4 mb-4">
-                    <p class="text-sm text-gray-400 mb-3">Make payment to:</p>
-                    <div class="space-y-2 text-sm">
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Bank:</span>
-                            <span class="font-semibold">Kuda Bank</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Account Number:</span>
-                            <span class="font-mono font-semibold">2014613557</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-400">Account Name:</span>
-                            <span class="font-semibold">MUTECH INVESTMENT</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="mb-6">
-                    <label class="block mb-2 text-sm">Payment Proof</label>
-                    <input type="file" id="deposit-proof" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500" accept="image/*">
-                </div>
-                <button id="confirm-deposit" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">Submit Deposit</button>
-            </div>
+        <h3>Activity (latest)</h3>
+        <div class="table-wrap small">
+          <table>
+            <thead>
+              <tr><th>User</th><th>Action</th><th>Amount</th><th>Status</th><th>Date</th></tr>
+            </thead>
+            <tbody id="admin-activity-log"></tbody>
+          </table>
         </div>
 
-        <!-- Withdraw Modal -->
-        <div id="withdraw-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
-            <div class="glass-effect rounded-2xl w-full max-w-md p-6 mx-4 slide-in">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">Withdraw Funds</h2>
-                    <button id="close-withdraw" class="text-gray-400 hover:text-white text-2xl">&times;</button>
-                </div>
-                <form id="withdraw-form">
-                    <div class="mb-4">
-                        <label class="block mb-2 text-sm">Amount (₦)</label>
-                        <input type="number" id="withdraw-amount" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" placeholder="Minimum ₦1700" required>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block mb-2 text-sm">Bank Name</label>
-                        <select id="bank-name" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" required>
-                            <option value="">Select Bank</option>
-                            <option value="Access Bank">Access Bank</option>
-                            <option value="First Bank">First Bank</option>
-                            <option value="GTBank">GTBank</option>
-                            <option value="Zenith Bank">Zenith Bank</option>
-                            <option value="UBA">UBA</option>
-                            <option value="Kuda Bank">Kuda Bank</option>
-                            <option value="Opay">Opay</option>
-                            <option value="Palmpay">Palmpay</option>
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block mb-2 text-sm">Account Number</label>
-                        <input type="text" id="account-number-input" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" required>
-                    </div>
-                    <div class="mb-6">
-                        <label class="block mb-2 text-sm">Account Name</label>
-                        <input type="text" id="account-name" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" required>
-                    </div>
-                    <button type="submit" id="confirm-withdraw" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">Request Withdrawal</button>
-                </form>
-                <div id="withdraw-success" class="hidden text-center">
-                    <i class="fas fa-check-circle text-6xl text-green-500 mb-4"></i>
-                    <h3 class="text-xl font-bold mb-2">Withdrawal Requested!</h3>
-                    <p class="text-sm text-gray-400 mb-2">Amount: ₦<span id="withdraw-amount-success"></span></p>
-                    <p class="text-sm text-gray-400 mb-2">Bank: <span id="withdraw-bank-success"></span></p>
-                    <p class="text-sm text-gray-400 mb-6">Account: <span id="withdraw-account-number-success"></span></p>
-                    <button id="close-withdraw-success" class="px-6 py-2 btn-primary rounded-lg">Close</button>
-                </div>
-            </div>
+        <div class="pending-lists">
+          <div id="admin-pending-deposits-list"></div>
+          <div id="admin-pending-withdrawals-list"></div>
         </div>
+      </section>
 
-        <!-- Invest Modal -->
-        <div id="invest-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
-            <div class="glass-effect rounded-2xl w-full max-w-md p-6 mx-4 slide-in">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">Make Investment</h2>
-                    <button id="close-invest" class="text-gray-400 hover:text-white text-2xl">&times;</button>
-                </div>
-                <div class="mb-4">
-                    <label class="block mb-2 text-sm">Amount (₦)</label>
-                    <input type="number" id="invest-amount" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" placeholder="Enter amount">
-                </div>
-                <div class="mb-6">
-                    <label class="block mb-2 text-sm">Select Plan</label>
-                    <select id="invest-plan-select" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none">
-                        <option value="starter">Starter Plan (20% ROI in 7 days)</option>
-                        <option value="premium">Premium Plan (50% ROI in 14 days)</option>
-                        <option value="executive">Executive Plan (100% ROI in 30 days)</option>
-                    </select>
-                </div>
-                <button id="confirm-invest" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">Confirm Investment</button>
-            </div>
+      <!-- Public landing / instructions when not logged in -->
+      <section id="landing" class="card">
+        <h2>Welcome to MUTECH</h2>
+        <p class="lead">A demo investment dashboard. Register and try deposits, investments and referral flows. This is a front-end demo — never store real secrets here.</p>
+
+        <div class="plans grid">
+          <div class="plan glass-effect">
+            <h4>Starter</h4>
+            <p>₦1,000 – ₦10,000</p>
+            <p>ROI: 20%</p>
+            <button class="btn invest-plan-btn" data-plan="starter">Choose</button>
+          </div>
+          <div class="plan glass-effect">
+            <h4>Premium</h4>
+            <p>₦10,000 – ₦50,000</p>
+            <p>ROI: 50%</p>
+            <button class="btn invest-plan-btn" data-plan="premium">Choose</button>
+          </div>
+          <div class="plan glass-effect">
+            <h4>Executive</h4>
+            <p>₦50,000 – ₦500,000</p>
+            <p>ROI: 100%</p>
+            <button class="btn invest-plan-btn" data-plan="executive">Choose</button>
+          </div>
         </div>
+      </section>
+    </main>
+  </div>
 
-        <!-- Referral Modal -->
-        <div id="referral-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
-            <div class="glass-effect rounded-2xl w-full max-w-md p-6 mx-4 slide-in">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">Referral Link</h2>
-                    <button id="close-referral" class="text-gray-400 hover:text-white text-2xl">&times;</button>
-                </div>
-                <p class="text-sm text-gray-400 mb-4">Share your link and earn ₦200 per referral!</p>
-                <div class="flex items-center bg-gray-800 rounded-lg p-3 mb-6">
-                    <input type="text" id="referral-link" class="flex-1 bg-transparent outline-none text-sm" readonly>
-                    <button id="copy-referral" class="ml-2 px-4 py-2 btn-primary rounded-lg text-sm">
-                        <i class="fas fa-copy"></i>
-                    </button>
-                </div>
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-gray-800 rounded-lg p-4 text-center">
-                        <p class="text-sm text-gray-400 mb-1">Referrals</p>
-                        <p class="text-2xl font-bold" id="referral-count">0</p>
-                    </div>
-                    <div class="bg-gray-800 rounded-lg p-4 text-center">
-                        <p class="text-sm text-gray-400 mb-1">Earnings</p>
-                        <p class="text-2xl font-bold">₦<span id="referral-earnings-modal">0</span></p>
-                    </div>
-                </div>
-            </div>
+  <!-- ===== Modals ===== -->
+  <!-- Login Modal -->
+  <div id="login-modal" class="modal overlay hidden" role="dialog" aria-modal="true" aria-labelledby="login-title">
+    <div class="modal-card slide-in">
+      <header>
+        <h3 id="login-title">Login</h3>
+        <button id="close-login" class="btn-close" aria-label="Close">✕</button>
+      </header>
+      <form id="login-form" class="form">
+        <label for="login-username">Email</label>
+        <input id="login-username" name="username" autocomplete="email" required />
+        <label for="login-password">Password</label>
+        <input id="login-password" type="password" name="password" required />
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Login</button>
+          <a href="#" id="switch-to-register" class="link">Create account</a>
         </div>
-
-        <!-- Collect Profit Modal -->
-        <div id="collect-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
-            <div class="glass-effect rounded-2xl w-full max-w-md p-6 mx-4 slide-in">
-                <div class="flex justify-between items-center mb-6">
-                    <h2 class="text-2xl font-bold">Collect Profit</h2>
-                    <button id="close-collect" class="text-gray-400 hover:text-white text-2xl">&times;</button>
-                </div>
-                <div id="collect-details" class="mb-6"></div>
-                <button id="confirm-collect" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition">Collect Profit</button>
-            </div>
-        </div>
-
-        <footer class="gradient-bg py-8 mt-16">
-            <div class="container mx-auto px-4 text-center">
-                <div class="flex items-center justify-center space-x-2 mb-4">
-                    <i class="fas fa-chart-line text-2xl"></i>
-                    <span class="text-xl font-bold">MUTECH 3D</span>
-                </div>
-                <p class="text-sm text-gray-300">© 2025 MUTECH Investment Platform. All rights reserved.</p>
-            </div>
-        </footer>
+      </form>
     </div>
+  </div>
 
-    <script src="app.js"></script>
+  <!-- Register Modal -->
+  <div id="register-modal" class="modal overlay hidden" role="dialog" aria-modal="true" aria-labelledby="register-title">
+    <div class="modal-card slide-in">
+      <header>
+        <h3 id="register-title">Register</h3>
+        <button id="close-register" class="btn-close" aria-label="Close">✕</button>
+      </header>
+      <form id="register-form" class="form">
+        <label for="register-username">Email</label>
+        <input id="register-username" name="username" autocomplete="email" required />
+        <label for="register-password">Password</label>
+        <input id="register-password" type="password" name="password" required />
+        <label for="referral-code">Referral code (optional)</label>
+        <input id="referral-code" name="referral" />
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Register</button>
+          <a href="#" id="switch-to-login" class="link">Have an account?</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Deposit Modal -->
+  <div id="deposit-modal" class="modal overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-card slide-in">
+      <header>
+        <h3>Deposit</h3>
+        <button id="close-deposit" class="btn-close" aria-label="Close">✕</button>
+      </header>
+      <div class="form">
+        <label for="deposit-amount">Amount (₦)</label>
+        <input id="deposit-amount" type="number" min="1" />
+        <label for="deposit-proof">Payment proof (filename only for demo)</label>
+        <input id="deposit-proof" type="file" />
+        <div class="form-actions">
+          <button id="confirm-deposit" class="btn btn-primary">Submit deposit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Withdraw Modal -->
+  <div id="withdraw-modal" class="modal overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-card slide-in">
+      <header>
+        <h3>Withdraw</h3>
+        <button id="close-withdraw" class="btn-close" aria-label="Close">✕</button>
+      </header>
+      <form id="withdraw-form" class="form">
+        <label for="withdraw-amount">Amount (₦)</label>
+        <input id="withdraw-amount" type="number" min="1700" />
+        <label for="bank-name">Bank name</label>
+        <input id="bank-name" />
+        <label for="account-number-input">Account number</label>
+        <input id="account-number-input" />
+        <label for="account-name">Account name</label>
+        <input id="account-name" />
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary">Request withdrawal</button>
+        </div>
+      </form>
+
+      <div id="withdraw-success" class="hidden">
+        <p>Withdraw request submitted.</p>
+        <p><strong>Amount:</strong> ₦<span id="withdraw-amount-success"></span></p>
+        <p><strong>Bank:</strong> <span id="withdraw-bank-success"></span></p>
+        <p><strong>Account number:</strong> <span id="withdraw-account-number-success"></span></p>
+        <button id="close-withdraw-success" class="btn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Invest Modal -->
+  <div id="invest-modal" class="modal overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-card slide-in">
+      <header>
+        <h3>Make an investment</h3>
+        <button id="close-invest" class="btn-close" aria-label="Close">✕</button>
+      </header>
+      <div class="form">
+        <label for="invest-plan-select">Plan</label>
+        <select id="invest-plan-select">
+          <option value="starter">Starter</option>
+          <option value="premium">Premium</option>
+          <option value="executive">Executive</option>
+        </select>
+        <label for="invest-amount">Amount (₦)</label>
+        <input id="invest-amount" type="number" />
+        <div class="form-actions">
+          <button id="confirm-invest" class="btn btn-primary">Invest</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Collect modal -->
+  <div id="collect-modal" class="modal overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-card slide-in">
+      <header>
+        <h3>Collect Profit</h3>
+        <button id="close-collect" class="btn-close" aria-label="Close">✕</button>
+      </header>
+      <div id="collect-details" class="form"></div>
+      <div class="form-actions">
+        <button id="confirm-collect" class="btn btn-primary">Confirm collect</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Referral modal -->
+  <div id="referral-modal" class="modal overlay hidden" role="dialog" aria-modal="true">
+    <div class="modal-card slide-in">
+      <header>
+        <h3>Referral</h3>
+        <button id="close-referral" class="btn-close" aria-label="Close">✕</button>
+      </header>
+      <div class="form">
+        <label for="referral-link">Share link</label>
+        <input id="referral-link" readonly />
+        <p>Earned: ₦<span id="referral-earnings-modal">0</span></p>
+        <p>Referrals: <span id="referral-count">0</span></p>
+        <div class="form-actions">
+          <button id="copy-referral" class="btn">Copy</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- small scripts are in app.js -->
 </body>
-                                </html>
-
+    </html>
