@@ -1,648 +1,366 @@
-// 3D Background Animation
-const canvas = document.getElementById('bg-canvas');
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+// app.js — MUTECH demo logic
+// Admin credentials (as requested)
+const ADMIN_CREDENTIALS = { email: 'declantessa@gmail.com', password: 'BAMIDELE!1' };
 
-renderer.setSize(window.innerWidth, window.innerHeight);
-camera.position.z = 5;
+// Storage keys & helpers
+const KEYS = {
+  USERS: 'mutech_users',
+  ACTIVITY: 'mutech_activity',
+  PENDING_DEPOSITS: 'mutech_pending_deposits',
+  PENDING_WITHDRAWS: 'mutech_pending_withdrawals',
+  LOGGED_IN: 'mutech_logged_in',
+  IS_ADMIN: 'mutech_is_admin'
+};
+const safeParse = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch (e) { return d; } };
+const saveKey = (k, v) => localStorage.setItem(k, JSON.stringify(v));
 
-// Create particles
-const particlesGeometry = new THREE.BufferGeometry();
-const particlesCount = 5000;
-const posArray = new Float32Array(particlesCount * 3);
+// Ensure defaults
+if (!localStorage.getItem(KEYS.USERS)) saveKey(KEYS.USERS, {});
+if (!localStorage.getItem(KEYS.ACTIVITY)) saveKey(KEYS.ACTIVITY, []);
+if (!localStorage.getItem(KEYS.PENDING_DEPOSITS)) saveKey(KEYS.PENDING_DEPOSITS, []);
+if (!localStorage.getItem(KEYS.PENDING_WITHDRAWS)) saveKey(KEYS.PENDING_WITHDRAWS, []);
 
-for (let i = 0; i < particlesCount * 3; i++) {
-    posArray[i] = (Math.random() - 0.5) * 10;
+// DOM helpers
+const $ = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+const el = (t, props = {}) => Object.assign(document.createElement(t), props);
+
+// Elements
+const acctNumSpan = $('#acctNum');
+const copyAcctBtn = $('#copyAcctBtn');
+const copyMsg = $('#copyMsg');
+const openDepositModalButtons = [$('#open-deposit-modal'), $('#deposit-btn')];
+
+// Modals & forms
+const loginModal = $('#login-modal'), registerModal = $('#register-modal'), depositModal = $('#deposit-modal');
+const withdrawModal = $('#withdraw-modal'), investModal = $('#invest-modal'), collectModal = $('#collect-modal');
+const referralModal = $('#referral-modal');
+
+// Login/register forms
+const loginForm = $('#login-form'), registerForm = $('#register-form');
+const loginBtn = $('#login-btn'), registerBtn = $('#register-btn');
+const closeLogin = $('#close-login'), closeRegister = $('#close-register');
+const switchToRegister = $('#switch-to-register'), switchToLogin = $('#switch-to-login');
+
+// Deposit form elements
+const depositAmountInput = $('#deposit-amount'), depositProofInput = $('#deposit-proof'), depositPreview = $('#deposit-preview');
+const confirmDepositBtn = $('#confirm-deposit'), cancelDepositBtn = $('#cancel-deposit');
+
+// Withdraw form
+const withdrawForm = $('#withdraw-form');
+
+// Invest form
+const investPlanSelect = $('#invest-plan-select'), investAmountInput = $('#invest-amount'), confirmInvestBtn = $('#confirm-invest');
+
+// User UI pieces
+const authButtons = $('#auth-buttons'), userMenu = $('#user-menu'), usernameDisplay = $('#username-display'), logoutBtn = $('#logout-btn');
+const dashboard = $('#dashboard'), landing = $('#landing'), adminPanel = $('#admin-panel'), adminPanelBtn = $('#admin-panel-btn');
+const walletBalance = $('#wallet-balance'), activeInvestments = $('#active-investments'), referralEarnings = $('#referral-earnings');
+const investmentHistory = $('#investment-history');
+
+// Admin areas
+const adminTotalUsers = $('#admin-total-users'), adminTotalInvestments = $('#admin-total-investments');
+const adminPendingDeposits = $('#admin-pending-deposits'), adminPendingWithdrawals = $('#admin-pending-withdrawals');
+const adminActivityLog = $('#admin-activity-log'), adminPendingDepositsList = $('#admin-pending-deposits-list'), adminPendingWithdrawalsList = $('#admin-pending-withdrawals-list');
+
+// Initial UI wiring
+acctNumSpan.textContent = '2014613557';
+
+// Copy account number
+copyAcctBtn.addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(acctNumSpan.textContent);
+    copyMsg.style.display = 'block';
+    setTimeout(() => copyMsg.style.display = 'none', 1500);
+  } catch (e) { alert('Copy failed'); }
+});
+
+// Open deposit modal (two buttons)
+openDepositModalButtons.forEach(btn => { if (btn) btn.addEventListener('click', () => depositModal.classList.remove('hidden')); });
+
+// Modal close handlers
+closeLogin?.addEventListener('click', () => loginModal.classList.add('hidden'));
+closeRegister?.addEventListener('click', () => registerModal.classList.add('hidden'));
+$('#close-deposit')?.addEventListener('click', () => depositModal.classList.add('hidden'));
+$('#close-withdraw')?.addEventListener('click', () => withdrawModal.classList.add('hidden'));
+$('#close-invest')?.addEventListener('click', () => investModal.classList.add('hidden'));
+$('#close-collect')?.addEventListener('click', () => collectModal.classList.add('hidden'));
+$('#close-referral')?.addEventListener('click', () => referralModal.classList.add('hidden'));
+
+// Switch login/register
+switchToRegister?.addEventListener('click', e => { e.preventDefault(); loginModal.classList.add('hidden'); registerModal.classList.remove('hidden'); });
+switchToLogin?.addEventListener('click', e => { e.preventDefault(); registerModal.classList.add('hidden'); loginModal.classList.remove('hidden'); });
+
+// Auth open
+loginBtn?.addEventListener('click', () => loginModal.classList.remove('hidden'));
+registerBtn?.addEventListener('click', () => registerModal.classList.remove('hidden'));
+
+// Register handler
+registerForm?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const username = $('#register-username').value.trim().toLowerCase();
+  const password = $('#register-password').value;
+  const referralCode = $('#referral-code').value.trim();
+
+  if (!username || !password) return alert('Complete form');
+  const users = safeParse(KEYS.USERS, {});
+  if (users[username]) return alert('User exists');
+
+  const userReferralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+  users[username] = { username, password, referralCode: userReferralCode, wallet: 1000, activeInvestments: [], referralEarnings: 0, referredBy: referralCode || null, deposited:false };
+  // referral bonus
+  if (referralCode) {
+    const referrer = Object.values(users).find(u => u.referralCode === referralCode);
+    if (referrer) { referrer.referralEarnings = (referrer.referralEarnings||0) + 200; users[referrer.username] = referrer; users[username].wallet += 200; }
+  }
+  saveKey(KEYS.USERS, users);
+  localStorage.setItem(KEYS.LOGGED_IN, username);
+  localStorage.setItem(KEYS.IS_ADMIN, 'false');
+  logActivity(username, 'register', 0, 'completed');
+  registerModal.classList.add('hidden'); registerForm.reset();
+  loadDashboard();
+  alert(`Welcome ${username}! ₦1,000 credited.`);
+});
+
+// Login handler
+loginForm?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const username = $('#login-username').value.trim().toLowerCase();
+  const password = $('#login-password').value;
+
+  // Admin check
+  if (username === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
+    localStorage.setItem(KEYS.LOGGED_IN, username); localStorage.setItem(KEYS.IS_ADMIN, 'true');
+    loginModal.classList.add('hidden'); loginForm.reset(); loadDashboard(); return;
+  }
+
+  const users = safeParse(KEYS.USERS, {});
+  if (users[username] && users[username].password === password) {
+    localStorage.setItem(KEYS.LOGGED_IN, username); localStorage.setItem(KEYS.IS_ADMIN, 'false');
+    logActivity(username, 'login', 0, 'completed');
+    loginModal.classList.add('hidden'); loginForm.reset(); loadDashboard();
+  } else alert('Invalid credentials');
+});
+
+// Load dashboard / admin
+function loadDashboard() {
+  const loggedInUser = localStorage.getItem(KEYS.LOGGED_IN);
+  const isAdmin = localStorage.getItem(KEYS.IS_ADMIN) === 'true';
+  if (!loggedInUser) return;
+
+  authButtons.classList.add('hidden'); userMenu.classList.remove('hidden');
+  usernameDisplay.textContent = isAdmin ? 'Admin' : loggedInUser;
+
+  if (isAdmin) { adminPanel.classList.remove('hidden'); dashboard.classList.add('hidden'); adminPanelBtn.classList.remove('hidden'); renderAdminPanel(); }
+  else { dashboard.classList.remove('hidden'); adminPanel.classList.add('hidden'); adminPanelBtn.classList.add('hidden'); updateUserDashboard(); }
 }
 
-particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-const particlesMaterial = new THREE.PointsMaterial({
-    size: 0.005,
-    color: 0x667eea
-});
-
-const particlesMesh = new THREE.Points(particlesGeometry, particlesMaterial);
-scene.add(particlesMesh);
-
-// Animation loop
-function animate() {
-    requestAnimationFrame(animate);
-    particlesMesh.rotation.x += 0.0005;
-    particlesMesh.rotation.y += 0.0005;
-    renderer.render(scene, camera);
+// Update user dashboard
+function updateUserDashboard() {
+  const username = localStorage.getItem(KEYS.LOGGED_IN);
+  const users = safeParse(KEYS.USERS, {});
+  const user = users[username];
+  if (!user) return;
+  walletBalance.textContent = `₦${(user.wallet||0).toLocaleString()}`;
+  const totalInvest = (user.activeInvestments||[]).reduce((s,i)=>s+(i.amount||0),0);
+  activeInvestments.textContent = `₦${totalInvest.toLocaleString()}`; referralEarnings.textContent = `₦${(user.referralEarnings||0).toLocaleString()}`;
+  // render investments
+  investmentHistory.innerHTML = '';
+  (user.activeInvestments || []).forEach((inv, idx) => {
+    const row = el('tr'); row.innerHTML = `<td>${inv.plan}</td><td>₦${inv.amount.toLocaleString()}</td><td>${inv.roi}%</td><td>${inv.collected ? 'Collected':'Active'}</td><td>${inv.date}</td><td>${inv.collected?'-':'-'}</td>`;
+    investmentHistory.appendChild(row);
+  });
 }
-animate();
 
-// Handle window resize
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+// Deposit: submit proof
+confirmDepositBtn?.addEventListener('click', () => {
+  const amount = Number(depositAmountInput.value || 0);
+  const proofFile = depositProofInput.files[0];
+  if (!amount || amount <= 0) return alert('Enter valid amount');
+  if (!proofFile) return alert('Upload proof image');
+  const username = localStorage.getItem(KEYS.LOGGED_IN) || 'guest';
+  const pending = safeParse(KEYS.PENDING_DEPOSITS, []);
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    pending.push({ username, amount, date: new Date().toLocaleString(), proofName: proofFile.name, proofData: e.target.result, bank: 'Kuda Bank', account: acctNumSpan.textContent });
+    saveKey(KEYS.PENDING_DEPOSITS, pending);
+    // log activity
+    const act = safeParse(KEYS.ACTIVITY, []); act.push({ username, action:'deposit', amount, status:'pending', date:new Date().toLocaleString() }); saveKey(KEYS.ACTIVITY, act);
+    depositModal.classList.add('hidden'); depositAmountInput.value=''; depositProofInput.value=''; depositPreview.innerHTML='';
+    renderAdminPanel();
+    alert('Deposit submitted — pending admin approval.');
+  };
+  reader.readAsDataURL(proofFile);
+});
+cancelDepositBtn?.addEventListener('click', () => { depositModal.classList.add('hidden'); depositPreview.innerHTML=''; });
+
+// preview selected proof image
+depositProofInput?.addEventListener('change', (e) => {
+  const f = e.target.files[0];
+  if (!f) { depositPreview.innerHTML=''; return; }
+  const reader = new FileReader();
+  reader.onload = function(ev) {
+    depositPreview.innerHTML = `<img src="${ev.target.result}" alt="proof" style="max-width:160px;border-radius:6px;border:1px solid rgba(255,255,255,0.06)"/>`;
+  };
+  reader.readAsDataURL(f);
 });
 
-// Admin Credentials
-const ADMIN_CREDENTIALS = {
-    email: 'declantessa@gmail.com',
-    password: 'BAMIDELE!1'
-};
-
-// Initialize Storage
-const initStorage = () => {
-    if (!localStorage.getItem('mutech_users')) {
-        localStorage.setItem('mutech_users', JSON.stringify({}));
-    }
-    if (!localStorage.getItem('mutech_activity')) {
-        localStorage.setItem('mutech_activity', JSON.stringify([]));
-    }
-    if (!localStorage.getItem('mutech_pending_deposits')) {
-        localStorage.setItem('mutech_pending_deposits', JSON.stringify([]));
-    }
-    if (!localStorage.getItem('mutech_pending_withdrawals')) {
-        localStorage.setItem('mutech_pending_withdrawals', JSON.stringify([]));
-    }
-};
-
-initStorage();
-
-// DOM Elements
-const loginBtn = document.getElementById('login-btn');
-const registerBtn = document.getElementById('register-btn');
-const loginModal = document.getElementById('login-modal');
-const registerModal = document.getElementById('register-modal');
-const closeLogin = document.getElementById('close-login');
-const closeRegister = document.getElementById('close-register');
-const switchToRegister = document.getElementById('switch-to-register');
-const switchToLogin = document.getElementById('switch-to-login');
-const loginForm = document.getElementById('login-form');
-const registerForm = document.getElementById('register-form');
-const authButtons = document.getElementById('auth-buttons');
-const userMenu = document.getElementById('user-menu');
-const usernameDisplay = document.getElementById('username-display');
-const logoutBtn = document.getElementById('logout-btn');
-const dashboard = document.getElementById('dashboard');
-const adminPanel = document.getElementById('admin-panel');
-const adminPanelBtn = document.getElementById('admin-panel-btn');
-
-// Wallet elements
-const walletBalance = document.getElementById('wallet-balance');
-const activeInvestments = document.getElementById('active-investments');
-const referralEarnings = document.getElementById('referral-earnings');
-
-// Modal elements
-const depositModal = document.getElementById('deposit-modal');
-const withdrawModal = document.getElementById('withdraw-modal');
-const investModal = document.getElementById('invest-modal');
-const referralModal = document.getElementById('referral-modal');
-const collectModal = document.getElementById('collect-modal');
-
-// Utility Functions
-const logActivity = (username, action, amount, status = 'pending') => {
-    const activities = JSON.parse(localStorage.getItem('mutech_activity'));
-    activities.push({
-        username,
-        action,
-        amount,
-        status,
-        date: new Date().toLocaleString()
-    });
-    localStorage.setItem('mutech_activity', JSON.stringify(activities));
-};
-
-const checkAdmin = (username) => {
-    return username === 'declantessa@gmail.com';
-};
-
-// Auth Modal Handlers
-loginBtn.addEventListener('click', () => loginModal.classList.remove('hidden'));
-registerBtn.addEventListener('click', () => registerModal.classList.remove('hidden'));
-closeLogin.addEventListener('click', () => loginModal.classList.add('hidden'));
-closeRegister.addEventListener('click', () => registerModal.classList.add('hidden'));
-
-switchToRegister.addEventListener('click', (e) => {
-    e.preventDefault();
-    loginModal.classList.add('hidden');
-    registerModal.classList.remove('hidden');
+// Withdraw: request and push to pending withdraws
+$('#withdraw-form')?.addEventListener('submit', (e) => {
+  e.preventDefault();
+  const amount = Number($('#withdraw-amount').value || 0);
+  const bankName = $('#bank-name').value.trim();
+  const accountNumber = $('#account-number-input').value.trim();
+  const accountName = $('#account-name').value.trim();
+  if (amount < 1700) return alert('Minimum withdrawal is ₦1,700');
+  const username = localStorage.getItem(KEYS.LOGGED_IN);
+  if (!username) return alert('Login required');
+  const users = safeParse(KEYS.USERS, {});
+  const user = users[username];
+  if (!user || amount > (user.wallet||0)) return alert('Insufficient funds');
+  // immediately deduct in demo
+  user.wallet = (user.wallet||0) - amount; users[username] = user; saveKey(KEYS.USERS, users);
+  const pendingW = safeParse(KEYS.PENDING_WITHDRAWS, []); pendingW.push({ username, amount, bankName, accountNumber, accountName, date:new Date().toLocaleString() }); saveKey(KEYS.PENDING_WITHDRAWS, pendingW);
+  const act = safeParse(KEYS.ACTIVITY, []); act.push({ username, action:'withdrawal', amount, status:'pending', date:new Date().toLocaleString() }); saveKey(KEYS.ACTIVITY, act);
+  $('#withdraw-modal').classList.add('hidden'); updateUserDashboard(); renderAdminPanel(); alert('Withdrawal requested — pending admin approval.');
 });
 
-switchToLogin.addEventListener('click', (e) => {
-    e.preventDefault();
-    registerModal.classList.add('hidden');
-    loginModal.classList.remove('hidden');
+// Invest: basic local invest
+confirmInvestBtn?.addEventListener('click', () => {
+  const amount = Number(investAmountInput.value || 0), plan = investPlanSelect.value;
+  const planDetails = { starter:{min:1000,max:10000,roi:20}, premium:{min:10000,max:50000,roi:50}, executive:{min:50000,max:500000,roi:100} };
+  const details = planDetails[plan];
+  if (!details) return alert('Choose a plan');
+  if (amount < details.min || amount > details.max) return alert(`Amount must be between ₦${details.min.toLocaleString()} and ₦${details.max.toLocaleString()}`);
+  const username = localStorage.getItem(KEYS.LOGGED_IN);
+  if (!username) return alert('Login required');
+  const users = safeParse(KEYS.USERS, {}); const user = users[username];
+  if (!user || amount > (user.wallet||0)) return alert('Insufficient funds');
+  user.wallet -= amount; user.activeInvestments = user.activeInvestments || []; user.activeInvestments.push({ plan, amount, roi: details.roi, date: new Date().toLocaleDateString(), collected:false });
+  users[username] = user; saveKey(KEYS.USERS, users); logActivity(username, 'investment', amount, 'completed'); investModal.classList.add('hidden'); updateUserDashboard(); alert(`Invested ₦${amount.toLocaleString()}`);
 });
 
-// Login Handler
-loginForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const username = document.getElementById('login-username').value;
-    const password = document.getElementById('login-password').value;
-
-    // Check admin login
-    if (username === ADMIN_CREDENTIALS.email && password === ADMIN_CREDENTIALS.password) {
-        localStorage.setItem('mutech_logged_in', username);
-        localStorage.setItem('mutech_is_admin', 'true');
-        loginModal.classList.add('hidden');
-        loginForm.reset();
-        loadDashboard();
-        return;
-    }
-
-    const users = JSON.parse(localStorage.getItem('mutech_users'));
-    if (users[username] && users[username].password === password) {
-        localStorage.setItem('mutech_logged_in', username);
-        localStorage.setItem('mutech_is_admin', 'false');
-        logActivity(username, 'login', 0, 'completed');
-        loginModal.classList.add('hidden');
-        loginForm.reset();
-        loadDashboard();
-    } else {
-        alert('Invalid credentials!');
-    }
-});
-
-// Register Handler
-registerForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const username = document.getElementById('register-username').value;
-    const password = document.getElementById('register-password').value;
-    const referralCode = document.getElementById('referral-code').value;
-
-    const users = JSON.parse(localStorage.getItem('mutech_users'));
-
-    if (users[username]) {
-        alert('Username already exists!');
-        return;
-    }
-
-    const userReferralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    users[username] = {
-        username,
-        password,
-        referralCode: userReferralCode,
-        wallet: 1000,
-        activeInvestments: [],
-        referralEarnings: 0,
-        deposited: false,
-        referredBy: referralCode || null
-    };
-
-    // Process referral bonus
-    if (referralCode) {
-        const referrer = Object.values(users).find(u => u.referralCode === referralCode);
-        if (referrer) {
-            referrer.referralEarnings += 200;
-            users[referrer.username] = referrer;
-            users[username].wallet += 200;
-        }
-    }
-
-    localStorage.setItem('mutech_users', JSON.stringify(users));
-    localStorage.setItem('mutech_logged_in', username);
-    localStorage.setItem('mutech_is_admin', 'false');
-    
-    logActivity(username, 'register', 0, 'completed');
-    
-    registerModal.classList.add('hidden');
-    registerForm.reset();
-    loadDashboard();
-    
-    alert(`Welcome ${username}! You received ₦1,000 bonus. Your referral code: ${userReferralCode}`);
-});
-
-// Load Dashboard
-const loadDashboard = () => {
-    const loggedInUser = localStorage.getItem('mutech_logged_in');
-    const isAdmin = localStorage.getItem('mutech_is_admin') === 'true';
-
-    if (!loggedInUser) return;
-
-    authButtons.classList.add('hidden');
-    userMenu.classList.remove('hidden');
-    usernameDisplay.textContent = isAdmin ? 'Admin' : loggedInUser;
-
-    if (isAdmin) {
-        adminPanelBtn.classList.remove('hidden');
-        dashboard.classList.add('hidden');
-        adminPanel.classList.remove('hidden');
-        loadAdminPanel();
-    } else {
-        adminPanelBtn.classList.add('hidden');
-        dashboard.classList.remove('hidden');
-        adminPanel.classList.add('hidden');
-        updateUserDashboard();
-    }
-};
-
-// Update User Dashboard
-const updateUserDashboard = () => {
-    const username = localStorage.getItem('mutech_logged_in');
-    const users = JSON.parse(localStorage.getItem('mutech_users'));
-    const user = users[username];
-
-    if (!user) return;
-
-    walletBalance.textContent = user.wallet.toLocaleString();
-    const totalInvestments = user.activeInvestments.reduce((sum, inv) => sum + inv.amount, 0);
-    activeInvestments.textContent = totalInvestments.toLocaleString();
-    referralEarnings.textContent = user.referralEarnings.toLocaleString();
-
-    // Update investment history
-    const historyTable = document.getElementById('investment-history');
-    historyTable.innerHTML = '';
-
-    user.activeInvestments.forEach((inv, index) => {
-        const row = document.createElement('tr');
-        row.className = 'border-b border-gray-700';
-        
-        const maturityDate = new Date(inv.date);
-        maturityDate.setDate(maturityDate.getDate() + (inv.plan === 'starter' ? 7 : inv.plan === 'premium' ? 14 : 30));
-        const isMatured = new Date() >= maturityDate;
-
-        row.innerHTML = `
-            <td class="px-4 py-3">${inv.plan.charAt(0).toUpperCase() + inv.plan.slice(1)}</td>
-            <td class="px-4 py-3">₦${inv.amount.toLocaleString()}</td>
-            <td class="px-4 py-3">${inv.roi}%</td>
-            <td class="px-4 py-3">
-                <span class="px-2 py-1 rounded-full text-xs ${inv.collected ? 'bg-gray-600' : isMatured ? 'bg-green-600' : 'bg-blue-600'}">
-                    ${inv.collected ? 'Collected' : isMatured ? 'Matured' : 'Active'}
-                </span>
-            </td>
-            <td class="px-4 py-3 text-sm">${inv.date}</td>
-            <td class="px-4 py-3">
-                ${!inv.collected && isMatured ? `<button onclick="collectProfit(${index})" class="px-3 py-1 bg-green-600 rounded-lg text-sm hover:bg-green-700">Collect</button>` : '-'}
-            </td>
-        `;
-        historyTable.appendChild(row);
-    });
-};
-
-// Deposit Handler
-document.getElementById('deposit-btn').addEventListener('click', () => {
-    depositModal.classList.remove('hidden');
-});
-
-document.getElementById('close-deposit').addEventListener('click', () => {
-    depositModal.classList.add('hidden');
-});
-
-document.getElementById('confirm-deposit').addEventListener('click', () => {
-    const amount = Number(document.getElementById('deposit-amount').value);
-    const proof = document.getElementById('deposit-proof').files[0];
-
-    if (!amount || amount <= 0) {
-        alert('Enter valid amount!');
-        return;
-    }
-
-    if (!proof) {
-        alert('Upload payment proof!');
-        return;
-    }
-
-    const username = localStorage.getItem('mutech_logged_in');
-    const pendingDeposits = JSON.parse(localStorage.getItem('mutech_pending_deposits'));
-    
-    pendingDeposits.push({
-        username,
-        amount,
-        date: new Date().toLocaleString(),
-        proofName: proof.name
-    });
-
-    localStorage.setItem('mutech_pending_deposits', JSON.stringify(pendingDeposits));
-    logActivity(username, 'deposit', amount, 'pending');
-
-    depositModal.classList.add('hidden');
-    document.getElementById('deposit-amount').value = '';
-    document.getElementById('deposit-proof').value = '';
-
-    alert('Deposit submitted! Waiting for admin approval.');
-});
-
-// Withdraw Handler
-document.getElementById('withdraw-btn').addEventListener('click', () => {
-    withdrawModal.classList.remove('hidden');
-    document.getElementById('withdraw-form').classList.remove('hidden');
-    document.getElementById('withdraw-success').classList.add('hidden');
-});
-
-document.getElementById('close-withdraw').addEventListener('click', () => {
-    withdrawModal.classList.add('hidden');
-});
-
-document.getElementById('withdraw-form').addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const amount = Number(document.getElementById('withdraw-amount').value);
-    const bankName = document.getElementById('bank-name').value;
-    const accountNumber = document.getElementById('account-number-input').value;
-    const accountName = document.getElementById('account-name').value;
-
-    if (amount < 1700) {
-        alert('Minimum withdrawal is ₦1,700!');
-        return;
-    }
-
-    const username = localStorage.getItem('mutech_logged_in');
-    const users = JSON.parse(localStorage.getItem('mutech_users'));
-    const user = users[username];
-
-    if (amount > user.wallet) {
-        alert('Insufficient funds!');
-        return;
-    }
-
-    // Deduct from wallet immediately
-    user.wallet -= amount;
-    users[username] = user;
-    localStorage.setItem('mutech_users', JSON.stringify(users));
-
-    // Add to pending withdrawals
-    const pendingWithdrawals = JSON.parse(localStorage.getItem('mutech_pending_withdrawals'));
-    pendingWithdrawals.push({
-        username,
-        amount,
-        bankName,
-        accountNumber,
-        accountName,
-        date: new Date().toLocaleString()
-    });
-    localStorage.setItem('mutech_pending_withdrawals', JSON.stringify(pendingWithdrawals));
-
-    logActivity(username, 'withdrawal', amount, 'pending');
-
-    document.getElementById('withdraw-form').classList.add('hidden');
-    document.getElementById('withdraw-success').classList.remove('hidden');
-    document.getElementById('withdraw-amount-success').textContent = amount.toLocaleString();
-    document.getElementById('withdraw-bank-success').textContent = bankName;
-    document.getElementById('withdraw-account-number-success').textContent = accountNumber;
-
-    updateUserDashboard();
-});
-
-document.getElementById('close-withdraw-success').addEventListener('click', () => {
-    withdrawModal.classList.add('hidden');
-    document.getElementById('withdraw-form').reset();
-});// Investment Handler
-document.getElementById('invest-btn').addEventListener('click', () => {
-    investModal.classList.remove('hidden');
-});
-
-document.querySelectorAll('.invest-plan-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.getElementById('invest-plan-select').value = btn.dataset.plan;
-        investModal.classList.remove('hidden');
-    });
-});
-
-document.getElementById('close-invest').addEventListener('click', () => {
-    investModal.classList.add('hidden');
-});
-
-document.getElementById('confirm-invest').addEventListener('click', () => {
-    const amount = Number(document.getElementById('invest-amount').value);
-    const plan = document.getElementById('invest-plan-select').value;
-
-    const planDetails = {
-        starter: { min: 1000, max: 10000, roi: 20 },
-        premium: { min: 10000, max: 50000, roi: 50 },
-        executive: { min: 50000, max: 500000, roi: 100 }
-    };
-
-    const details = planDetails[plan];
-
-    if (amount < details.min || amount > details.max) {
-        alert(`Amount must be between ₦${details.min.toLocaleString()} and ₦${details.max.toLocaleString()}`);
-        return;
-    }
-
-    const username = localStorage.getItem('mutech_logged_in');
-    const users = JSON.parse(localStorage.getItem('mutech_users'));
-    const user = users[username];
-
-    if (amount > user.wallet) {
-        alert('Insufficient funds!');
-        return;
-    }
-
-    user.wallet -= amount;
-    user.activeInvestments.push({
-        plan,
-        amount,
-        roi: details.roi,
-        date: new Date().toLocaleDateString(),
-        collected: false
-    });
-
-    users[username] = user;
-    localStorage.setItem('mutech_users', JSON.stringify(users));
-    logActivity(username, 'investment', amount, 'completed');
-
-    investModal.classList.add('hidden');
-    document.getElementById('invest-amount').value = '';
-    updateUserDashboard();
-
-    alert(`Investment of ₦${amount.toLocaleString()} successful!`);
-});
-
-// Collect Profit
+// Collect profit (button wired via delegation in updateUserDashboard if needed)
 window.collectProfit = (index) => {
-    const username = localStorage.getItem('mutech_logged_in');
-    const users = JSON.parse(localStorage.getItem('mutech_users'));
-    const user = users[username];
-    const inv = user.activeInvestments[index];
-
-    const profit = Math.floor((inv.amount * inv.roi) / 100);
-    const total = inv.amount + profit;
-
-    document.getElementById('collect-details').innerHTML = `
-        <div class="space-y-2 text-sm">
-            <div class="flex justify-between"><span class="text-gray-400">Plan:</span><span>${inv.plan.charAt(0).toUpperCase() + inv.plan.slice(1)}</span></div>
-            <div class="flex justify-between"><span class="text-gray-400">Principal:</span><span>₦${inv.amount.toLocaleString()}</span></div>
-            <div class="flex justify-between"><span class="text-gray-400">Profit:</span><span class="text-green-400">₦${profit.toLocaleString()}</span></div>
-            <div class="flex justify-between font-bold text-lg"><span>Total:</span><span>₦${total.toLocaleString()}</span></div>
-        </div>
-    `;
-
-    collectModal.classList.remove('hidden');
-    document.getElementById('confirm-collect').onclick = () => {
-        user.wallet += total;
-        inv.collected = true;
-        users[username] = user;
-        localStorage.setItem('mutech_users', JSON.stringify(users));
-        logActivity(username, 'profit_collection', total, 'completed');
-        collectModal.classList.add('hidden');
-        updateUserDashboard();
-        alert(`Collected ₦${total.toLocaleString()}!`);
-    };
+  const username = localStorage.getItem(KEYS.LOGGED_IN);
+  if (!username) return alert('Login required');
+  const users = safeParse(KEYS.USERS, {}); const user = users[username];
+  if (!user || !user.activeInvestments || !user.activeInvestments[index]) return alert('Invalid investment');
+  const inv = user.activeInvestments[index];
+  const profit = Math.floor((inv.amount * inv.roi)/100); const total = inv.amount + profit;
+  $('#collect-details').innerHTML = `<div>Plan: ${inv.plan}</div><div>Principal: ₦${inv.amount.toLocaleString()}</div><div>Profit: ₦${profit.toLocaleString()}</div><div><strong>Total: ₦${total.toLocaleString()}</strong></div>`;
+  collectModal.classList.remove('hidden');
+  $('#confirm-collect').onclick = () => {
+    user.wallet = (user.wallet||0) + total; inv.collected = true; users[username] = user; saveKey(KEYS.USERS, users); logActivity(username, 'profit_collection', total, 'completed'); collectModal.classList.add('hidden'); updateUserDashboard(); alert(`Collected ₦${total.toLocaleString()}`);
+  };
 };
 
-document.getElementById('close-collect').addEventListener('click', () => {
-    collectModal.classList.add('hidden');
+// Referral
+$('#referral-btn')?.addEventListener('click', () => {
+  const username = localStorage.getItem(KEYS.LOGGED_IN);
+  if (!username) return alert('Login required');
+  const users = safeParse(KEYS.USERS, {}); const user = users[username];
+  $('#referral-link').value = `${window.location.origin}?ref=${user.referralCode}`;
+  $('#referral-earnings-modal').textContent = (user.referralEarnings||0).toLocaleString();
+  const referralCount = Object.values(users).filter(u => u.referredBy === user.referralCode).length;
+  $('#referral-count').textContent = referralCount;
+  referralModal.classList.remove('hidden');
+});
+$('#copy-referral')?.addEventListener('click', () => { const input = $('#referral-link'); input.select(); document.execCommand('copy'); alert('Referral copied'); });
+
+// Admin rendering & actions
+function renderAdminPanel() {
+  const users = safeParse(KEYS.USERS, {}), activities = safeParse(KEYS.ACTIVITY, []), pendingDeposits = safeParse(KEYS.PENDING_DEPOSITS, []), pendingWithdrawals = safeParse(KEYS.PENDING_WITHDRAWS, []);
+  adminTotalUsers.textContent = Object.keys(users).length;
+  const totalInv = Object.values(users).reduce((sum,u)=>sum+(u.activeInvestments||[]).reduce((s,i)=>s+(i.amount||0),0),0);
+  adminTotalInvestments.textContent = totalInv.toLocaleString();
+  adminPendingDeposits.textContent = pendingDeposits.length;
+  adminPendingWithdrawals.textContent = pendingWithdrawals.length;
+
+  // activity
+  adminActivityLog.innerHTML = ''; activities.slice(-20).reverse().forEach(act => {
+    const tr = el('tr'); tr.innerHTML = `<td>${act.username}</td><td>${act.action}</td><td>₦${act.amount.toLocaleString()}</td><td>${act.status}</td><td>${act.date}</td>`; adminActivityLog.appendChild(tr);
+  });
+
+  // pending deposits list
+  adminPendingDepositsList.innerHTML = '';
+  pendingDeposits.forEach((dep, idx) => {
+    const div = el('div'); div.className = 'card'; div.innerHTML = `<strong>${dep.username}</strong><div>₦${dep.amount.toLocaleString()}</div><div class="muted">${dep.date}</div><div style="margin-top:8px"><img src="${dep.proofData}" style="max-width:200px;border-radius:6px;border:1px solid rgba(255,255,255,0.06);display:block;margin-bottom:8px"/><div style="display:flex;gap:8px"><button data-idx="${idx}" class="approve-dep btn btn-primary">Approve</button><button data-idx="${idx}" class="reject-dep btn btn-outline">Reject</button></div></div>`; adminPendingDepositsList.appendChild(div);
+  });
+
+  // pending withdrawals
+  adminPendingWithdrawalsList.innerHTML = '';
+  pendingWithdrawals.forEach((wit, idx) => {
+    const div = el('div'); div.className = 'card'; div.innerHTML = `<strong>${wit.username}</strong><div>₦${wit.amount.toLocaleString()} — ${wit.bankName} ${wit.accountNumber}</div><div class="muted">${wit.date}</div><div style="margin-top:8px"><button data-idx="${idx}" class="approve-w btn btn-primary">Approve</button></div>`; adminPendingWithdrawalsList.appendChild(div);
+  });
+}
+
+// delegate admin action clicks
+document.addEventListener('click', (e) => {
+  const aprDep = e.target.closest('.approve-dep');
+  const rejDep = e.target.closest('.reject-dep');
+  const aprW = e.target.closest('.approve-w');
+
+  if (aprDep) {
+    const idx = Number(aprDep.dataset.idx);
+    const pend = safeParse(KEYS.PENDING_DEPOSITS, []);
+    const dep = pend[idx]; if (!dep) return alert('Not found');
+    const users = safeParse(KEYS.USERS, {}); users[dep.username] = users[dep.username] || { username:dep.username, password:'', wallet:0, activeInvestments:[], referralEarnings:0 };
+    users[dep.username].wallet = (users[dep.username].wallet||0) + dep.amount; users[dep.username].deposited = true; saveKey(KEYS.USERS, users);
+    pend.splice(idx,1); saveKey(KEYS.PENDING_DEPOSITS, pend);
+    logActivity(dep.username, 'deposit_approved', dep.amount, 'completed'); renderAdminPanel(); alert('Deposit approved');
+  }
+
+  if (rejDep) {
+    const idx = Number(rejDep.dataset.idx);
+    const pend = safeParse(KEYS.PENDING_DEPOSITS, []); pend.splice(idx,1); saveKey(KEYS.PENDING_DEPOSITS, pend); renderAdminPanel(); alert('Deposit rejected');
+  }
+
+  if (aprW) {
+    const idx = Number(aprW.dataset.idx);
+    const pendW = safeParse(KEYS.PENDING_WITHDRAWS, []);
+    const wit = pendW[idx]; if (!wit) return alert('Not found');
+    pendW.splice(idx,1); saveKey(KEYS.PENDING_WITHDRAWS, pendW);
+    logActivity(wit.username, 'withdrawal_approved', wit.amount, 'completed'); renderAdminPanel(); alert('Withdrawal approved (demo)');
+  }
 });
 
-// Referral Handler
-document.getElementById('referral-btn').addEventListener('click', () => {
-    const username = localStorage.getItem('mutech_logged_in');
-    const users = JSON.parse(localStorage.getItem('mutech_users'));
-    const user = users[username];
+// activity logger
+function logActivity(username, action, amount=0, status='pending') {
+  const acts = safeParse(KEYS.ACTIVITY, []); acts.push({ username, action, amount, status, date: new Date().toLocaleString() }); saveKey(KEYS.ACTIVITY, acts);
+}
 
-    document.getElementById('referral-link').value = `${window.location.origin}?ref=${user.referralCode}`;
-    document.getElementById('referral-earnings-modal').textContent = user.referralEarnings.toLocaleString();
-    
-    const referralCount = Object.values(users).filter(u => u.referredBy === user.referralCode).length;
-    document.getElementById('referral-count').textContent = referralCount;
-
-    referralModal.classList.remove('hidden');
+// logout
+logoutBtn?.addEventListener('click', () => {
+  localStorage.setItem(KEYS.LOGGED_IN, ''); localStorage.setItem(KEYS.IS_ADMIN, 'false');
+  authButtons.classList.remove('hidden'); userMenu.classList.add('hidden'); dashboard.classList.add('hidden'); adminPanel.classList.add('hidden'); landing.classList.remove('hidden');
+  location.reload();
 });
 
-document.getElementById('close-referral').addEventListener('click', () => {
-    referralModal.classList.add('hidden');
-});
+// Initial load attempt (if already logged in)
+(function init() {
+  // wire quick open buttons
+  $('#deposit-btn')?.addEventListener('click', () => depositModal.classList.remove('hidden'));
+  $('#invest-btn')?.addEventListener('click', () => investModal.classList.remove('hidden'));
+  $('#referral-btn')?.addEventListener('click', () => referralModal.classList.remove('hidden'));
 
-document.getElementById('copy-referral').addEventListener('click', () => {
-    const input = document.getElementById('referral-link');
-    input.select();
-    document.execCommand('copy');
-    alert('Referral link copied!');
-});
+  // if logged in
+  const logged = localStorage.getItem(KEYS.LOGGED_IN);
+  if (logged) loadDashboard();
 
-// Admin Panel
-adminPanelBtn.addEventListener('click', () => {
-    if (adminPanel.classList.contains('hidden')) {
-        dashboard.classList.add('hidden');
-        adminPanel.classList.remove('hidden');
-        loadAdminPanel();
-    } else {
-        adminPanel.classList.add('hidden');
-        dashboard.classList.remove('hidden');
+  // guarded three.js background (small, low cost)
+  try {
+    if (window.THREE) {
+      const canvas = document.getElementById('bg-canvas'), scene = new THREE.Scene();
+      const camera = new THREE.PerspectiveCamera(60, innerWidth/innerHeight, 0.1, 1000); camera.position.z = 6;
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true }); renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(window.devicePixelRatio,2));
+      const count = 1600; const geometry = new THREE.BufferGeometry(); const positions = new Float32Array(count*3);
+      for (let i=0;i<positions.length;i++) positions[i] = (Math.random()-0.5) * 12;
+      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+      const material = new THREE.PointsMaterial({ size: 0.02, color: 0x667eea, transparent: true, opacity: 0.85 });
+      const points = new THREE.Points(geometry, material); scene.add(points);
+      (function animate(){ requestAnimationFrame(animate); points.rotation.x += 0.0006; points.rotation.y += 0.0008; renderer.render(scene,camera); })();
+      window.addEventListener('resize', () => { camera.aspect = innerWidth/innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
     }
-});
-
-const loadAdminPanel = () => {
-    const users = JSON.parse(localStorage.getItem('mutech_users'));
-    const activities = JSON.parse(localStorage.getItem('mutech_activity'));
-    const pendingDeposits = JSON.parse(localStorage.getItem('mutech_pending_deposits'));
-    const pendingWithdrawals = JSON.parse(localStorage.getItem('mutech_pending_withdrawals'));
-
-    // Stats
-    document.getElementById('admin-total-users').textContent = Object.keys(users).length;
-    
-    const totalInv = Object.values(users).reduce((sum, u) => {
-        return sum + u.activeInvestments.reduce((s, inv) => s + inv.amount, 0);
-    }, 0);
-    document.getElementById('admin-total-investments').textContent = totalInv.toLocaleString();
-    document.getElementById('admin-pending-deposits').textContent = pendingDeposits.length;
-    document.getElementById('admin-pending-withdrawals').textContent = pendingWithdrawals.length;
-
-    // Activity Log
-    const activityLog = document.getElementById('admin-activity-log');
-    activityLog.innerHTML = '';
-    activities.slice(-20).reverse().forEach(act => {
-        const row = document.createElement('tr');
-        row.className = 'border-b border-gray-700';
-        row.innerHTML = `
-            <td class="px-4 py-3">${act.username}</td>
-            <td class="px-4 py-3">${act.action}</td>
-            <td class="px-4 py-3">₦${act.amount.toLocaleString()}</td>
-            <td class="px-4 py-3"><span class="px-2 py-1 rounded-full text-xs ${act.status === 'completed' ? 'bg-green-600' : 'bg-yellow-600'}">${act.status}</span></td>
-            <td class="px-4 py-3 text-xs">${act.date}</td>
-            <td class="px-4 py-3">-</td>
-        `;
-        activityLog.appendChild(row);
-    });
-
-    // Pending Deposits
-    const depositsList = document.getElementById('admin-pending-deposits-list');
-    depositsList.innerHTML = '';
-    pendingDeposits.forEach((dep, index) => {
-        const div = document.createElement('div');
-        div.className = 'glass-effect rounded-lg p-4';
-        div.innerHTML = `
-            <div class="flex justify-between items-center">
-                <div>
-                    <p class="font-semibold">${dep.username}</p>
-                    <p class="text-sm text-gray-400">Amount: ₦${dep.amount.toLocaleString()}</p>
-                    <p class="text-xs text-gray-500">${dep.date}</p>
-                </div>
-                <div class="flex space-x-2">
-                    <button onclick="approveDeposit(${index})" class="px-4 py-2 bg-green-600 rounded-lg text-sm hover:bg-green-700">Approve</button>
-                    <button onclick="rejectDeposit(${index})" class="px-4 py-2 bg-red-600 rounded-lg text-sm hover:bg-red-700">Reject</button>
-                </div>
-            </div>
-        `;
-        depositsList.appendChild(div);
-    });
-
-    // Pending Withdrawals
-    const withdrawalsList = document.getElementById('admin-pending-withdrawals-list');
-    withdrawalsList.innerHTML = '';
-    pendingWithdrawals.forEach((wit, index) => {
-        const div = document.createElement('div');
-        div.className = 'glass-effect rounded-lg p-4';
-        div.innerHTML = `
-            <div class="flex justify-between items-center">
-                <div>
-                    <p class="font-semibold">${wit.username}</p>
-                    <p class="text-sm text-gray-400">Amount: ₦${wit.amount.toLocaleString()}</p>
-                    <p class="text-xs text-gray-500">${wit.bankName} - ${wit.accountNumber}</p>
-                    <p class="text-xs text-gray-500">${wit.date}</p>
-                </div>
-                <div class="flex space-x-2">
-                    <button onclick="approveWithdrawal(${index})" class="px-4 py-2 bg-green-600 rounded-lg text-sm hover:bg-green-700">Approve</button>
-                </div>
-            </div>
-        `;
-        withdrawalsList.appendChild(div);
-    });
-};
-
-window.approveDeposit = (index) => {
-    const pendingDeposits = JSON.parse(localStorage.getItem('mutech_pending_deposits'));
-    const deposit = pendingDeposits[index];
-    
-    const users = JSON.parse(localStorage.getItem('mutech_users'));
-    users[deposit.username].wallet += deposit.amount;
-    users[deposit.username].deposited = true;
-    localStorage.setItem('mutech_users', JSON.stringify(users));
-
-    pendingDeposits.splice(index, 1);
-    localStorage.setItem('mutech_pending_deposits', JSON.stringify(pendingDeposits));
-
-    logActivity(deposit.username, 'deposit_approved', deposit.amount, 'completed');
-    loadAdminPanel();
-    alert('Deposit approved!');
-};
-
-window.rejectDeposit = (index) => {
-    const pendingDeposits = JSON.parse(localStorage.getItem('mutech_pending_deposits'));
-    pendingDeposits.splice(index, 1);
-    localStorage.setItem('mutech_pending_deposits', JSON.stringify(pendingDeposits));
-    loadAdminPanel();
-    alert('Deposit rejected!');
-};
-
-window.approveWithdrawal = (index) => {
-    const pendingWithdrawals = JSON.parse(localStorage.getItem('mutech_pending_withdrawals'));
-    const withdrawal = pendingWithdrawals[index];
-
-    pendingWithdrawals.splice(index, 1);
-    localStorage.setItem('mutech_pending_withdrawals', JSON.stringify(pendingWithdrawals));
-
-    logActivity(withdrawal.username, 'withdrawal_approved', withdrawal.amount, 'completed');
-    loadAdminPanel();
-    alert('Withdrawal approved!');
-};
-
-// Logout
-logoutBtn.addEventListener('click', () => {
-    localStorage.setItem('mutech_logged_in', '');
-    localStorage.setItem('mutech_is_admin', 'false');
-    authButtons.classList.remove('hidden');
-    userMenu.classList.add('hidden');
-    dashboard.classList.add('hidden');
-    adminPanel.classList.add('hidden');
-});
-
-// Initialize
-loadDashboard();
+  } catch (e) { console.warn('particles failed', e); }
+})();
