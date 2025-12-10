@@ -6,1021 +6,385 @@
     <title>Mutech Investment Platform</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#3B82F6',
-                        secondary: '#1E40AF',
-                        accent: '#10B981',
-                        dark: '#1F2937',
-                        light: '#F3F4F6',
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        .gradient-bg {
-            background: linear-gradient(135deg, #3B82F6 0%, #1E40AF 100%);
-        }
-        .blur-bg {
-            backdrop-filter: blur(10px);
-        }
-        .custom-shadow {
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-        .slide-in {
-            animation: slideIn 0.3s ease-out forwards;
-        }
-        @keyframes slideIn {
-            from {
-                transform: translateY(20px);
-                opacity: 0;
-            }
-            to {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-        .pulse-animation {
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.05);
-            }
-            100% {
-                transform: scale(1);
-            }
-        }
-    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
 </head>
-<body class="bg-gray-100 font-sans">
-    <!-- Navigation -->
-    <nav class="gradient-bg text-white shadow-lg">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <i class="fas fa-chart-line text-2xl"></i>
-                <span class="text-xl font-bold">MUTECH</span>
-            </div>
-            <div id="auth-buttons">
-                <a href="#" id="login-btn" class="px-4 py-2 rounded-md bg-white text-primary font-semibold hover:bg-gray-100 transition">Login</a>
-                <a href="#" id="register-btn" class="px-4 py-2 rounded-md bg-transparent border border-white text-white font-semibold hover:bg-white hover:text-primary transition ml-2">Register</a>
-            </div>
-            <div id="user-menu" class="hidden">
-                <div class="flex items-center space-x-4">
+<body>
+    <canvas id="bg-canvas"></canvas>
+
+    <div class="content-wrapper">
+        <!-- Navigation -->
+        <nav class="gradient-bg shadow-2xl">
+            <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-chart-line text-2xl"></i>
+                    <span class="text-xl font-bold">MUTECH 3D</span>
+                </div>
+                <div id="auth-buttons">
+                    <button id="login-btn" class="px-4 py-2 rounded-lg bg-white text-purple-600 font-semibold hover:bg-gray-100 transition">Login</button>
+                    <button id="register-btn" class="px-4 py-2 rounded-lg bg-transparent border-2 border-white text-white font-semibold hover:bg-white hover:text-purple-600 transition ml-2">Register</button>
+                </div>
+                <div id="user-menu" class="hidden flex items-center space-x-4">
                     <span id="username-display" class="font-medium"></span>
-                    <button id="logout-btn" class="px-4 py-2 rounded-md bg-red-500 text-white font-semibold hover:bg-red-600 transition">Logout</button>
+                    <button id="admin-panel-btn" class="hidden px-4 py-2 rounded-lg admin-badge text-white font-semibold">Admin</button>
+                    <button id="logout-btn" class="px-4 py-2 rounded-lg bg-red-500 text-white font-semibold hover:bg-red-600 transition">Logout</button>
                 </div>
             </div>
-        </div>
-    </nav>
+        </nav>
 
-    <!-- Main Content Area -->
-    <main class="container mx-auto px-4 py-8">
+        <!-- Main Content -->
+        <main class="container mx-auto px-4 py-8">
+            <!-- Dashboard -->
+            <div id="dashboard" class="hidden">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <!-- Balance Card -->
+                    <div class="glass-effect rounded-2xl p-6 card-3d">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Wallet Balance</h3>
+                            <i class="fas fa-wallet text-3xl text-yellow-400"></i>
+                        </div>
+                        <p class="text-4xl font-bold mb-4">₦<span id="wallet-balance">0</span></p>
+                        <div class="flex space-x-2">
+                            <button id="deposit-btn" class="flex-1 btn-primary text-white px-4 py-2 rounded-lg font-medium">Deposit</button>
+                            <button id="withdraw-btn" class="flex-1 bg-gray-700 text-white px-4 py-2 rounded-lg font-medium hover:bg-gray-600 transition">Withdraw</button>
+                        </div>
+                    </div>
+
+                    <!-- Active Investments Card -->
+                    <div class="glass-effect rounded-2xl p-6 card-3d">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Active Investments</h3>
+                            <i class="fas fa-chart-line text-3xl text-green-400"></i>
+                        </div>
+                        <p class="text-4xl font-bold mb-4">₦<span id="active-investments">0</span></p>
+                        <button id="invest-btn" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 transition">Invest Now</button>
+                    </div>
+
+                    <!-- Referral Earnings Card -->
+                    <div class="glass-effect rounded-2xl p-6 card-3d">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Referral Earnings</h3>
+                            <i class="fas fa-users text-3xl text-blue-400"></i>
+                        </div>
+                        <p class="text-4xl font-bold mb-4">₦<span id="referral-earnings">0</span></p>
+                        <button id="referral-btn" class="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-700 transition">Share Link</button>
+                    </div>
+                </div>
+
+                <!-- Investment Packages -->
+                <div class="glass-effect rounded-2xl p-6 mb-8">
+                    <h2 class="text-2xl font-bold mb-6">Investment Packages</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl p-6 card-3d">
+                            <h3 class="text-xl font-bold mb-2">Starter Plan</h3>
+                            <p class="mb-4 text-sm">20% ROI in 7 days</p>
+                            <p class="text-3xl font-bold mb-4">₦1,000 - ₦10,000</p>
+                            <button data-plan="starter" class="invest-plan-btn w-full bg-white text-purple-600 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">Invest</button>
+                        </div>
+                        <div class="bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl p-6 card-3d">
+                            <h3 class="text-xl font-bold mb-2">Premium Plan</h3>
+                            <p class="mb-4 text-sm">50% ROI in 14 days</p>
+                            <p class="text-3xl font-bold mb-4">₦10,000 - ₦50,000</p>
+                            <button data-plan="premium" class="invest-plan-btn w-full bg-white text-blue-600 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">Invest</button>
+                        </div>
+                        <div class="bg-gradient-to-br from-yellow-500 to-red-500 rounded-xl p-6 card-3d">
+                            <h3 class="text-xl font-bold mb-2">Executive Plan</h3>
+                            <p class="mb-4 text-sm">100% ROI in 30 days</p>
+                            <p class="text-3xl font-bold mb-4">₦50,000 - ₦500,000</p>
+                            <button data-plan="executive" class="invest-plan-btn w-full bg-white text-red-600 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">Invest</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Investment History -->
+                <div class="glass-effect rounded-2xl p-6">
+                    <h2 class="text-2xl font-bold mb-6">Investment History</h2>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="border-b border-gray-600">
+                                <tr>
+                                    <th class="px-4 py-3">Plan</th>
+                                    <th class="px-4 py-3">Amount</th>
+                                    <th class="px-4 py-3">ROI</th>
+                                    <th class="px-4 py-3">Status</th>
+                                    <th class="px-4 py-3">Date</th>
+                                    <th class="px-4 py-3">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="investment-history"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Panel -->
+            <div id="admin-panel" class="hidden">
+                <div class="glass-effect rounded-2xl p-6 mb-8">
+                    <h2 class="text-3xl font-bold mb-6 flex items-center">
+                        <i class="fas fa-shield-alt mr-3 text-pink-400"></i>
+                        Admin Dashboard
+                    </h2>
+
+                    <!-- Stats Overview -->
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                        <div class="bg-gradient-to-br from-green-500 to-green-700 rounded-xl p-4">
+                            <p class="text-sm mb-2">Total Users</p>
+                            <p class="text-3xl font-bold" id="admin-total-users">0</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl p-4">
+                            <p class="text-sm mb-2">Total Investments</p>
+                            <p class="text-3xl font-bold">₦<span id="admin-total-investments">0</span></p>
+                        </div>
+                        <div class="bg-gradient-to-br from-purple-500 to-purple-700 rounded-xl p-4">
+                            <p class="text-sm mb-2">Pending Deposits</p>
+                            <p class="text-3xl font-bold" id="admin-pending-deposits">0</p>
+                        </div>
+                        <div class="bg-gradient-to-br from-red-500 to-red-700 rounded-xl p-4">
+                            <p class="text-sm mb-2">Pending Withdrawals</p>
+                            <p class="text-3xl font-bold" id="admin-pending-withdrawals">0</p>
+                        </div>
+                    </div>
+
+                    <!-- User Activity -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-4">Recent User Activity</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm">
+                                <thead class="border-b border-gray-600">
+                                    <tr>
+                                        <th class="px-4 py-3">Username</th>
+                                        <th class="px-4 py-3">Action</th>
+                                        <th class="px-4 py-3">Amount</th>
+                                        <th class="px-4 py-3">Status</th>
+                                        <th class="px-4 py-3">Date</th>
+                                        <th class="px-4 py-3">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="admin-activity-log"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Deposit Confirmations -->
+                    <div class="mb-8">
+                        <h3 class="text-xl font-bold mb-4">Pending Deposit Confirmations</h3>
+                        <div id="admin-pending-deposits-list" class="space-y-3"></div>
+                    </div>
+
+                    <!-- Withdrawal Requests -->
+                    <div>
+                        <h3 class="text-xl font-bold mb-4">Pending Withdrawal Requests</h3>
+                        <div id="admin-pending-withdrawals-list" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <!-- ALL MODALS GO HERE (Login, Register, Deposit, Withdraw, Invest, Referral, Collect) -->
         <!-- Login Modal -->
-        <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-            <div class="bg-white rounded-lg w-full max-w-md p-6 slide-in">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold text-dark">Login</h2>
-                    <button id="close-login" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times"></i>
-                    </button>
+        <div id="login-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
+            <div class="glass-effect rounded-2xl w-full max-w-md p-6 mx-4 slide-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Login</h2>
+                    <button id="close-login" class="text-gray-400 hover:text-white text-2xl">&times;</button>
                 </div>
                 <form id="login-form">
                     <div class="mb-4">
-                        <label for="login-username" class="block text-gray-700 mb-2">Username</label>
-                        <input type="text" id="login-username" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <label class="block mb-2 text-sm">Username</label>
+                        <input type="text" id="login-username" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" required>
                     </div>
-                    <div class="mb-4">
-                        <label for="login-password" class="block text-gray-700 mb-2">Password</label>
-                        <input type="password" id="login-password" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                    <div class="mb-6">
+                        <label class="block mb-2 text-sm">Password</label>
+                        <input type="password" id="login-password" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" required>
                     </div>
-                    <button type="submit" class="w-full gradient-bg text-white py-2 rounded-md font-semibold hover:opacity-90 transition">Login</button>
-                    <p class="text-center text-gray-600 mt-4">Don't have an account? <a href="#" id="switch-to-register" class="text-primary font-medium">Register</a></p>
+                    <button type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">Login</button>
+                    <p class="text-center text-sm mt-4 text-gray-400">Don't have an account? <a href="#" id="switch-to-register" class="text-purple-400 hover:text-purple-300">Register</a></p>
                 </form>
             </div>
         </div>
 
         <!-- Register Modal -->
-        <div id="register-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-            <div class="bg-white rounded-lg w-full max-w-md p-6 slide-in">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-2xl font-bold text-dark">Register</h2>
-                    <button id="close-register" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times"></i>
-                    </button>
+        <div id="register-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
+            <div class="glass-effect rounded-2xl w-full max-w-md p-6 mx-4 slide-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Register</h2>
+                    <button id="close-register" class="text-gray-400 hover:text-white text-2xl">&times;</button>
                 </div>
                 <form id="register-form">
                     <div class="mb-4">
-                        <label for="register-username" class="block text-gray-700 mb-2">Username</label>
-                        <input type="text" id="register-username" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <label class="block mb-2 text-sm">Username</label>
+                        <input type="text" id="register-username" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" required>
                     </div>
                     <div class="mb-4">
-                        <label for="register-password" class="block text-gray-700 mb-2">Password</label>
-                        <input type="password" id="register-password" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
+                        <label class="block mb-2 text-sm">Password</label>
+                        <input type="password" id="register-password" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" required>
                     </div>
-                    <div class="mb-4">
-                        <label for="referral-code" class="block text-gray-700 mb-2">Referral Code (Optional)</label>
-                        <input type="text" id="referral-code" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                    <div class="mb-6">
+                        <label class="block mb-2 text-sm">Referral Code (Optional)</label>
+                        <input type="text" id="referral-code" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none">
                     </div>
-                    <button type="submit" class="w-full gradient-bg text-white py-2 rounded-md font-semibold hover:opacity-90 transition">Register</button>
-                    <p class="text-center text-gray-600 mt-4">Already have an account? <a href="#" id="switch-to-login" class="text-primary font-medium">Login</a></p>
+                    <button type="submit" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">Register</button>
+                    <p class="text-center text-sm mt-4 text-gray-400">Already have an account? <a href="#" id="switch-to-login" class="text-purple-400 hover:text-purple-300">Login</a></p>
                 </form>
             </div>
         </div>
 
-        <!-- Dashboard (visible when logged in) -->
-        <div id="dashboard" class="hidden">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <!-- Balance Card -->
-                <div class="bg-white rounded-lg shadow-lg p-6 custom-shadow">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-dark">Wallet Balance</h3>
-                        <i class="fas fa-wallet text-2xl text-primary"></i>
-                    </div>
-                    <p class="text-3xl font-bold text-dark">₦<span id="wallet-balance">0</span></p>
-                    <div class="mt-4 flex space-x-2">
-                        <button id="deposit-btn" class="gradient-bg text-white px-4 py-2 rounded-md font-medium hover:opacity-90 transition">Deposit</button>
-                        <button id="withdraw-btn" class="bg-gray-200 text-dark px-4 py-2 rounded-md font-medium hover:bg-gray-300 transition">Withdraw</button>
-                    </div>
-                </div>
-
-                <!-- Active Investments Card -->
-                <div class="bg-white rounded-lg shadow-lg p-6 custom-shadow">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-dark">Active Investments</h3>
-                        <i class="fas fa-chart-line text-2xl text-accent"></i>
-                    </div>
-                    <p class="text-3xl font-bold text-dark">₦<span id="active-investments">0</span></p>
-                    <div class="mt-4">
-                        <button id="invest-btn" class="w-full bg-accent text-white px-4 py-2 rounded-md font-medium hover:bg-green-600 transition">Invest Now</button>
-                    </div>
-                </div>
-
-                <!-- Referral Earnings Card -->
-                <div class="bg-white rounded-lg shadow-lg p-6 custom-shadow">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-lg font-semibold text-dark">Referral Earnings</h3>
-                        <i class="fas fa-users text-2xl text-secondary"></i>
-                    </div>
-                    <p class="text-3xl font-bold text-dark">₦<span id="referral-earnings">0</span></p>
-                    <div class="mt-4">
-                        <button id="referral-btn" class="w-full bg-secondary text-white px-4 py-2 rounded-md font-medium hover:bg-blue-800 transition">Share Referral</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Investment Packages -->
-            <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-                <h2 class="text-xl font-bold text-dark mb-6">Investment Packages</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="border rounded-lg p-4 hover:shadow-md transition">
-                        <h3 class="text-lg font-semibold text-dark mb-2">Starter Plan</h3>
-                        <p class="text-gray-600 mb-4">20% ROI in 7 days</p>
-                        <p class="text-2xl font-bold text-primary mb-4">₦1,000 - ₦10,000</p>
-                        <button data-plan="starter" class="w-full invest-plan-btn bg-primary text-white py-2 rounded-md font-medium hover:bg-blue-600 transition">Invest</button>
-                    </div>
-                    <div class="border rounded-lg p-4 hover:shadow-md transition">
-                        <h3 class="text-lg font-semibold text-dark mb-2">Premium Plan</h3>
-                        <p class="text-gray-600 mb-4">50% ROI in 14 days</p>
-                        <p class="text-2xl font-bold text-primary mb-4">₦10,000 - ₦50,000</p>
-                        <button data-plan="premium" class="w-full invest-plan-btn bg-primary text-white py-2 rounded-md font-medium hover:bg-blue-600 transition">Invest</button>
-                    </div>
-                    <div class="border rounded-lg p-4 hover:shadow-md transition">
-                        <h3 class="text-lg font-semibold text-dark mb-2">Executive Plan</h3>
-                        <p class="text-gray-600 mb-4">100% ROI in 30 days</p>
-                        <p class="text-2xl font-bold text-primary mb-4">₦50,000 - ₦500,000</p>
-                        <button data-plan="executive" class="w-full invest-plan-btn bg-primary text-white py-2 rounded-md font-medium hover:bg-blue-600 transition">Invest</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Investment History -->
-            <div class="bg-white rounded-lg shadow-lg p-6">
-                <h2 class="text-xl font-bold text-dark mb-6">Investment History</h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-4 py-2 text-gray-700 font-semibold">Plan</th>
-                                <th class="px-4 py-2 text-gray-700 font-semibold">Amount</th>
-                                <th class="px-4 py-2 text-gray-700 font-semibold">ROI</th>
-                                <th class="px-4 py-2 text-gray-700 font-semibold">Status</th>
-                                <th class="px-4 py-2 text-gray-700 font-semibold">Date</th>
-                                <th class="px-4 py-2 text-gray-700 font-semibold">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody id="investment-history">
-                            <!-- Will be populated by JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Collect Profit Modal -->
-            <div id="collect-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-                <div class="bg-white rounded-lg w-full max-w-md p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold text-dark">Collect Profit</h2>
-                        <button id="close-collect" class="text-gray-500 hover:text-gray-700">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div id="collect-details" class="mb-4">
-                        <!-- Will be populated by JavaScript -->
-                    </div>
-                    <button id="confirm-collect" class="w-full bg-accent text-white py-2 rounded-md font-semibold hover:bg-green-600 transition">Collect Profit</button>
-                </div>
-            </div>
-
-            <!-- Invest Modal -->
-            <div id="invest-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-                <div class="bg-white rounded-lg w-full max-w-md p-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h2 class="text-xl font-bold text-dark">Invest</h2>
-                        <button id="close-invest" class="text-gray-500 hover:text-gray-700">
-                            <i class="fas fa-times"></i>
-                        </button>
-                    </div>
-                    <div class="mb-4">
-                        <label for="invest-amount" class="block text-gray-700 mb-2">Investment Amount (₦)</label>
-                        <input type="number" id="invest-amount" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter amount">
-                    </div>
-                    <div class="mb-4">
-                        <label for="invest-plan-select" class="block text-gray-700 mb-2">Select Plan</label>
-                        <select id="invest-plan-select" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
-                            <option value="starter">Starter Plan (20% ROI in 7 days)</option>
-                            <option value="premium">Premium Plan (50% ROI in 14 days)</option>
-                            <option value="executive">Executive Plan (100% ROI in 30 days)</option>
-                        </select>
-                    </div>
-                    <button id="confirm-invest" class="w-full bg-primary text-white py-2 rounded-md font-semibold hover:bg-blue-600 transition">Confirm Investment</button>
-                </div>
-            </div>
-        </div>
-
         <!-- Deposit Modal -->
-        <div id="deposit-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-            <div class="bg-white rounded-lg w-full max-w-md p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold text-dark">Deposit Funds</h2>
-                    <button id="close-deposit" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times"></i>
-                    </button>
+        <div id="deposit-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
+            <div class="glass-effect rounded-2xl w-full max-w-md p-6 mx-4 slide-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Deposit Funds</h2>
+                    <button id="close-deposit" class="text-gray-400 hover:text-white text-2xl">&times;</button>
                 </div>
                 <div class="mb-4">
-                    <label for="deposit-amount" class="block text-gray-700 mb-2">Deposit Amount (₦)</label>
-                    <input type="number" id="deposit-amount" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter amount">
+                    <label class="block mb-2 text-sm">Amount (₦)</label>
+                    <input type="number" id="deposit-amount" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" placeholder="Enter amount">
+                </div>
+                <div class="bg-gray-800 rounded-lg p-4 mb-4">
+                    <p class="text-sm text-gray-400 mb-3">Make payment to:</p>
+                    <div class="space-y-2 text-sm">
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Bank:</span>
+                            <span class="font-semibold">Kuda Bank</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Account Number:</span>
+                            <span class="font-mono font-semibold">2014613557</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-400">Account Name:</span>
+                            <span class="font-semibold">MUTECH INVESTMENT</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="mb-6">
-                    <p class="text-sm text-gray-600 mb-2">Make payment to:</p>
-                    <div class="bg-gray-100 p-3 rounded-md">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-semibold">Account Number:</span>
-                            <span id="account-number" class="font-mono">6109172525</span>
-                        </div>
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="font-semibold">Bank Name:</span>
-                            <span>Opay</span>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="font-semibold">Account Name:</span>
-                            <span>MUTECH INVESTMENT</span>
-                        </div>
+                    <label class="block mb-2 text-sm">Payment Proof</label>
+                    <input type="file" id="deposit-proof" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500" accept="image/*">
+                </div>
+                <button id="confirm-deposit" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">Submit Deposit</button>
+            </div>
+        </div>
+
+        <!-- Withdraw Modal -->
+        <div id="withdraw-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
+            <div class="glass-effect rounded-2xl w-full max-w-md p-6 mx-4 slide-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Withdraw Funds</h2>
+                    <button id="close-withdraw" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+                </div>
+                <form id="withdraw-form">
+                    <div class="mb-4">
+                        <label class="block mb-2 text-sm">Amount (₦)</label>
+                        <input type="number" id="withdraw-amount" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" placeholder="Minimum ₦1700" required>
                     </div>
-                    <p class="text-sm text-gray-600 mt-2">After payment, upload proof below:</p>
+                    <div class="mb-4">
+                        <label class="block mb-2 text-sm">Bank Name</label>
+                        <select id="bank-name" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" required>
+                            <option value="">Select Bank</option>
+                            <option value="Access Bank">Access Bank</option>
+                            <option value="First Bank">First Bank</option>
+                            <option value="GTBank">GTBank</option>
+                            <option value="Zenith Bank">Zenith Bank</option>
+                            <option value="UBA">UBA</option>
+                            <option value="Kuda Bank">Kuda Bank</option>
+                            <option value="Opay">Opay</option>
+                            <option value="Palmpay">Palmpay</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block mb-2 text-sm">Account Number</label>
+                        <input type="text" id="account-number-input" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" required>
+                    </div>
+                    <div class="mb-6">
+                        <label class="block mb-2 text-sm">Account Name</label>
+                        <input type="text" id="account-name" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" required>
+                    </div>
+                    <button type="submit" id="confirm-withdraw" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">Request Withdrawal</button>
+                </form>
+                <div id="withdraw-success" class="hidden text-center">
+                    <i class="fas fa-check-circle text-6xl text-green-500 mb-4"></i>
+                    <h3 class="text-xl font-bold mb-2">Withdrawal Requested!</h3>
+                    <p class="text-sm text-gray-400 mb-2">Amount: ₦<span id="withdraw-amount-success"></span></p>
+                    <p class="text-sm text-gray-400 mb-2">Bank: <span id="withdraw-bank-success"></span></p>
+                    <p class="text-sm text-gray-400 mb-6">Account: <span id="withdraw-account-number-success"></span></p>
+                    <button id="close-withdraw-success" class="px-6 py-2 btn-primary rounded-lg">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invest Modal -->
+        <div id="invest-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
+            <div class="glass-effect rounded-2xl w-full max-w-md p-6 mx-4 slide-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Make Investment</h2>
+                    <button id="close-invest" class="text-gray-400 hover:text-white text-2xl">&times;</button>
                 </div>
                 <div class="mb-4">
-                    <label for="deposit-proof" class="block text-gray-700 mb-2">Payment Proof (Screenshot)</label>
-                    <input type="file" id="deposit-proof" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary">
+                    <label class="block mb-2 text-sm">Amount (₦)</label>
+                    <input type="number" id="invest-amount" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none" placeholder="Enter amount">
                 </div>
-                <button id="confirm-deposit" class="w-full bg-primary text-white py-2 rounded-md font-semibold hover:bg-blue-600 transition">Submit Deposit</button>
+                <div class="mb-6">
+                    <label class="block mb-2 text-sm">Select Plan</label>
+                    <select id="invest-plan-select" class="w-full px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 focus:border-purple-500 focus:outline-none">
+                        <option value="starter">Starter Plan (20% ROI in 7 days)</option>
+                        <option value="premium">Premium Plan (50% ROI in 14 days)</option>
+                        <option value="executive">Executive Plan (100% ROI in 30 days)</option>
+                    </select>
+                </div>
+                <button id="confirm-invest" class="w-full btn-primary text-white py-3 rounded-lg font-semibold">Confirm Investment</button>
             </div>
         </div>
-
-        
-
-<!-- Withdrawal Modal -->
-<div id="withdraw-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-    <div class="bg-white rounded-lg w-full max-w-md p-6 shadow-lg">
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold text-dark">Withdraw Funds</h2>
-            <button id="close-withdraw" class="text-gray-500 hover:text-gray-700">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-        <form id="withdraw-form">
-            <div class="mb-4">
-                <label for="withdraw-amount" class="block text-gray-700 mb-2">Amount (₦)</label>
-                <input type="number" id="withdraw-amount" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Minimum ₦1700" required>
-            </div>
-            <div class="mb-4">
-                <label for="bank-name" class="block text-gray-700 mb-2">Bank Name</label>
-                <select id="bank-name" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" required>
-                    <option value="">Select Bank</option>
-                    <option value="Access Bank">Access Bank</option>
-                    <option value="First Bank">First Bank</option>
-                    <option value="GTBank">GTBank</option>
-                    <!-- Add more banks here -->
-                </select>
-            </div>
-            <div class="mb-4">
-                <label for="account-number-input" class="block text-gray-700 mb-2">Account Number</label>
-                <input type="text" id="account-number-input" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter account number" required>
-            </div>
-            <div class="mb-4">
-                <label for="account-name" class="block text-gray-700 mb-2">Account Name</label>
-                <input type="text" id="account-name" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary" placeholder="Enter account name" required>
-            </div>
-            <button id="confirm-withdraw" class="w-full bg-primary text-white py-2 rounded-md font-semibold hover:bg-blue-600 transition">Request Withdrawal</button>
-        </form>
-        <div id="withdraw-success" class="hidden text-center py-4">
-            <i class="fas fa-check-circle text-5xl text-green-500 mb-3"></i>
-            <h3 class="text-xl font-semibold text-dark mb-2">Withdrawal Successful!</h3>
-            <p class="text-gray-600">Your withdrawal request has been processed successfully.</p>
-            <p class="text-gray-600">Transaction ID: #<span id="transaction-id">123456</span></p>
-            <p class="text-gray-600">Amount: ₦<span id="withdraw-amount-success"></span></p>
-            <p class="text-gray-600">Bank: <span id="withdraw-bank-success"></span></p>
-            <p class="text-gray-600">Account Number: <span id="withdraw-account-number-success"></span></p>
-            <button id="close-withdraw-success" class="mt-4 px-6 py-2 bg-primary text-white rounded-md hover:bg-blue-600 transition">Close</button>
-        </div>
-    </div>
-</div>
 
         <!-- Referral Modal -->
-        <div id="referral-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-            <div class="bg-white rounded-lg w-full max-w-md p-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-bold text-dark">Your Referral Link</h2>
-                    <button id="close-referral" class="text-gray-500 hover:text-gray-700">
-                        <i class="fas fa-times"></i>
+        <div id="referral-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
+            <div class="glass-effect rounded-2xl w-full max-w-md p-6 mx-4 slide-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Referral Link</h2>
+                    <button id="close-referral" class="text-gray-400 hover:text-white text-2xl">&times;</button>
+                </div>
+                <p class="text-sm text-gray-400 mb-4">Share your link and earn ₦200 per referral!</p>
+                <div class="flex items-center bg-gray-800 rounded-lg p-3 mb-6">
+                    <input type="text" id="referral-link" class="flex-1 bg-transparent outline-none text-sm" readonly>
+                    <button id="copy-referral" class="ml-2 px-4 py-2 btn-primary rounded-lg text-sm">
+                        <i class="fas fa-copy"></i>
                     </button>
                 </div>
-                <div class="mb-4">
-                    <p class="text-gray-600 mb-2">Share your referral link and earn ₦200 for each successful registration.</p>
-                    <div class="flex items-center bg-gray-100 rounded-md p-3">
-                        <input type="text" id="referral-link" class="flex-grow bg-transparent outline-none" value="https://mutech.com/register?ref=" readonly>
-                        <button id="copy-referral" class="ml-2 px-3 py-1 bg-primary text-white rounded-md hover:bg-blue-600 transition">
-                            <i class="fas fa-copy"></i>
-                        </button>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-gray-800 rounded-lg p-4 text-center">
+                        <p class="text-sm text-gray-400 mb-1">Referrals</p>
+                        <p class="text-2xl font-bold" id="referral-count">0</p>
                     </div>
-                    <div class="mt-2 text-sm text-gray-600">✓ You earn ₦200 when your referral makes their first deposit</div>
-                </div>
-                <div id="referral-stats" class="mt-4">
-                    <h3 class="font-semibold text-dark mb-2">Your Referral Stats</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="border rounded-md p-3 text-center">
-                            <p class="text-gray-600">Total Referrals</p>
-                            <p class="text-xl font-bold text-primary">0</p>
-                        </div>
-                        <div class="border rounded-md p-3 text-center">
-                            <p class="text-gray-600">Earnings</p>
-                            <p class="text-xl font-bold text-primary">₦0</p>
-                        </div>
+                    <div class="bg-gray-800 rounded-lg p-4 text-center">
+                        <p class="text-sm text-gray-400 mb-1">Earnings</p>
+                        <p class="text-2xl font-bold">₦<span id="referral-earnings-modal">0</span></p>
                     </div>
                 </div>
             </div>
         </div>
-    </main>
 
-    <!-- Footer -->
-    <footer class="gradient-bg text-white py-8">
-        <div class="container mx-auto px-4">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <div class="mb-4 md:mb-0">
-                    <div class="flex items-center space-x-2">
-                        <i class="fas fa-chart-line text-2xl"></i>
-                        <span class="text-xl font-bold">MUTECH</span>
-                    </div>
-                    <p class="mt-2 text-sm">Your trusted investment platform</p>
+        <!-- Collect Profit Modal -->
+        <div id="collect-modal" class="fixed inset-0 modal-overlay flex items-center justify-center z-50 hidden">
+            <div class="glass-effect rounded-2xl w-full max-w-md p-6 mx-4 slide-in">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold">Collect Profit</h2>
+                    <button id="close-collect" class="text-gray-400 hover:text-white text-2xl">&times;</button>
                 </div>
-                <div class="flex space-x-4">
-                    <a href="#" class="hover:text-gray-300 transition"><i class="fab fa-facebook-f"></i></a>
-                    <a href="#" class="hover:text-gray-300 transition"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="hover:text-gray-300 transition"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="hover:text-gray-300 transition"><i class="fab fa-telegram"></i></a>
-                </div>
-            </div>
-            <div class="border-t border-gray-300 mt-6 pt-6 text-sm text-center">
-                <p>© 2025 MUTECH Investment Platform. All rights reserved.</p>
+                <div id="collect-details" class="mb-6"></div>
+                <button id="confirm-collect" class="w-full bg-green-600 text-white py-3 rounded-lg font-semibold hover:bg-green-700 transition">Collect Profit</button>
             </div>
         </div>
-    </footer>
 
-    <script>
-        // Initialize LocalStorage if not exists
-        if (!localStorage.getItem('mutech_users')) {
-            localStorage.setItem('mutech_users', JSON.stringify({}));
-        }
-        
-        if (!localStorage.getItem('mutech_logged_in')) {
-            localStorage.setItem('mutech_logged_in', '');
-        }
+        <footer class="gradient-bg py-8 mt-16">
+            <div class="container mx-auto px-4 text-center">
+                <div class="flex items-center justify-center space-x-2 mb-4">
+                    <i class="fas fa-chart-line text-2xl"></i>
+                    <span class="text-xl font-bold">MUTECH 3D</span>
+                </div>
+                <p class="text-sm text-gray-300">© 2025 MUTECH Investment Platform. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
 
-        // DOM Elements
-        const loginBtn = document.getElementById('login-btn');
-        const registerBtn = document.getElementById('register-btn');
-        const loginModal = document.getElementById('login-modal');
-        const registerModal = document.getElementById('register-modal');
-        const switchToRegister = document.getElementById('switch-to-register');
-        const switchToLogin = document.getElementById('switch-to-login');
-        const closeLogin = document.getElementById('close-login');
-        const closeRegister = document.getElementById('close-register');
-        const loginForm = document.getElementById('login-form');
-        const registerForm = document.getElementById('register-form');
-        const dashboard = document.getElementById('dashboard');
-        const authButtons = document.getElementById('auth-buttons');
-        const userMenu = document.getElementById('user-menu');
-        const usernameDisplay = document.getElementById('username-display');
-        const logoutBtn = document.getElementById('logout-btn');
-        const walletBalance = document.getElementById('wallet-balance');
-        const activeInvestments = document.getElementById('active-investments');
-        const referralEarnings = document.getElementById('referral-earnings');
-        const depositBtn = document.getElementById('deposit-btn');
-        const withdrawBtn = document.getElementById('withdraw-btn');
-        const depositModal = document.getElementById('deposit-modal');
-        const closeDeposit = document.getElementById('close-deposit');
-        const confirmDeposit = document.getElementById('confirm-deposit');
-        const withdrawModal = document.getElementById('withdraw-modal');
-        const closeWithdraw = document.getElementById('close-withdraw');
-        const confirmWithdraw = document.getElementById('confirm-withdraw');
-        const withdrawForm = document.getElementById('withdraw-form');
-        const withdrawSuccess = document.getElementById('withdraw-success');
-        const closeWithdrawSuccess = document.getElementById('close-withdraw-success');
-        const investBtn = document.getElementById('invest-btn');
-        const investModal = document.getElementById('invest-modal');
-        const closeInvest = document.getElementById('close-invest');
-        const confirmInvest = document.getElementById('confirm-invest');
-        const investPlanBtns = document.querySelectorAll('.invest-plan-btn');
-        const investmentHistory = document.getElementById('investment-history');
-        const collectModal = document.getElementById('collect-modal');
-        const closeCollect = document.getElementById('close-collect');
-        const confirmCollect = document.getElementById('confirm-collect');
-        const collectDetails = document.getElementById('collect-details');
-        const referralBtn = document.getElementById('referral-btn');
-        const referralModal = document.getElementById('referral-modal');
-        const closeReferral = document.getElementById('close-referral');
-        const referralLink = document.getElementById('referral-link');
-        const copyReferral = document.getElementById('copy-referral');
-        
-        // Check if user is logged in
-        const checkLogin = () => {
-            const loggedInUser = localStorage.getItem('mutech_logged_in');
-            if (loggedInUser) {
-                const users = JSON.parse(localStorage.getItem('mutech_users'));
-                const user = users[loggedInUser];
-                
-                updateDashboard(user);
-                
-                authButtons.classList.add('hidden');
-                userMenu.classList.remove('hidden');
-                dashboard.classList.remove('hidden');
-                usernameDisplay.textContent = loggedInUser;
-            }
-        };
-        
-        // Update dashboard with user data
-        const updateDashboard = (user) => {
-            walletBalance.textContent = user.wallet.toLocaleString();
-            activeInvestments.textContent = user.activeInvestments.reduce((sum, inv) => sum + inv.amount, 0).toLocaleString();
-            referralEarnings.textContent = user.referralEarnings.toLocaleString();
-            
-            // Update investment history
-            investmentHistory.innerHTML = '';
-            user.activeInvestments.forEach((investment, index) => {
-                const row = document.createElement('tr');
-                row.className = index % 2 === 0 ? 'bg-gray-50' : 'bg-white';
-                
-                const planCell = document.createElement('td');
-                planCell.className = 'px-4 py-2';
-                planCell.textContent = investment.plan.charAt(0).toUpperCase() + investment.plan.slice(1) + ' Plan';
-                
-                const amountCell = document.createElement('td');
-                amountCell.className = 'px-4 py-2';
-                amountCell.textContent = '₦' + investment.amount.toLocaleString();
-                
-                const roiCell = document.createElement('td');
-                roiCell.className = 'px-4 py-2';
-                roiCell.textContent = investment.roi + '%';
-                
-                const statusCell = document.createElement('td');
-                statusCell.className = 'px-4 py-2';
-                
-                const statusSpan = document.createElement('span');
-                statusSpan.className = 'px-2 py-1 rounded-full text-xs';
-                
-                if (investment.status === 'active') {
-                    statusSpan.className += ' bg-green-100 text-green-800';
-                    statusSpan.textContent = 'Active';
-                } else {
-                    statusSpan.className += ' bg-gray-100 text-gray-800';
-                    statusSpan.textContent = 'Completed';
-                }
-                
-                statusCell.appendChild(statusSpan);
-                
-                const dateCell = document.createElement('td');
-                dateCell.className = 'px-4 py-2';
-                dateCell.textContent = investment.date;
-                
-                const actionCell = document.createElement('td');
-                actionCell.className = 'px-4 py-2';
-                
-                if (investment.status === 'active' && !investment.collected) {
-                    const collectBtn = document.createElement('button');
-                    collectBtn.className = 'px-3 py-1 bg-accent text-white rounded-md hover:bg-green-600 transition';
-                    collectBtn.textContent = 'Collect';
-                    collectBtn.dataset.index = index;
-                    collectBtn.addEventListener('click', () => openCollectModal(index));
-                    actionCell.appendChild(collectBtn);
-                } else if (investment.collected) {
-                    actionCell.textContent = 'Collected';
-                } else {
-                    actionCell.textContent = '-';
-                }
-                
-                row.appendChild(planCell);
-                row.appendChild(amountCell);
-                row.appendChild(roiCell);
-                row.appendChild(statusCell);
-                row.appendChild(dateCell);
-                row.appendChild(actionCell);
-                
-                investmentHistory.appendChild(row);
-            });
-            
-            // Check if any investments have matured
-            checkMaturedInvestments(user);
-        };
-        
-        // Check if any investments have matured
-        const checkMaturedInvestments = (user) => {
-            const currentDate = new Date();
-            user.activeInvestments.forEach((investment, index) => {
-                if (investment.status === 'active') {
-                    const investmentDate = new Date(investment.date);
-                    const daysPassed = Math.floor((currentDate - investmentDate) / (1000 * 60 * 60 * 24));
-                    const daysRequired = investment.plan === 'starter' ? 7 : 
-                                        investment.plan === 'premium' ? 14 : 30;
-                    
-                    if (daysPassed >= daysRequired) {
-                        investment.status = 'completed';
-                        investment.profit = Math.floor((investment.amount * investment.roi) / 100);
-                        
-                        // Save updated user data
-                        const users = JSON.parse(localStorage.getItem('mutech_users'));
-                        users[user.username] = user;
-                        localStorage.setItem('mutech_users', JSON.stringify(users));
-                        
-                        updateDashboard(user);
-                    }
-                }
-            });
-        };
-        
-        // Open collect profit modal
-        const openCollectModal = (index) => {
-            const users = JSON.parse(localStorage.getItem('mutech_users'));
-            const username = localStorage.getItem('mutech_logged_in');
-            const user = users[username];
-            const investment = user.activeInvestments[index];
-            
-            collectDetails.innerHTML = `
-                <div class="mb-2">
-                    <span class="font-semibold">Plan:</span> ${investment.plan.charAt(0).toUpperCase() + investment.plan.slice(1)} Plan
-                </div>
-                <div class="mb-2">
-                    <span class="font-semibold">Amount:</span> ₦${investment.amount.toLocaleString()}
-                </div>
-                <div class="mb-2">
-                    <span class="font-semibold">Profit:</span> ₦${investment.profit.toLocaleString()}
-                </div>
-                <div class="mb-4">
-                    <span class="font-semibold">Total:</span> ₦${(investment.amount + investment.profit).toLocaleString()}
-                </div>
-            `;
-            
-            confirmCollect.dataset.index = index;
-            collectModal.classList.remove('hidden');
-        };
-        
-        // Event Listeners
-        loginBtn.addEventListener('click', () => {
-            loginModal.classList.remove('hidden');
-        });
-        
-        registerBtn.addEventListener('click', () => {
-            registerModal.classList.remove('hidden');
-        });
-        
-        switchToRegister.addEventListener('click', (e) => {
-            e.preventDefault();
-            loginModal.classList.add('hidden');
-            registerModal.classList.remove('hidden');
-        });
-        
-        switchToLogin.addEventListener('click', (e) => {
-            e.preventDefault();
-            registerModal.classList.add('hidden');
-            loginModal.classList.remove('hidden');
-        });
-        
-        closeLogin.addEventListener('click', () => {
-            loginModal.classList.add('hidden');
-            loginForm.reset();
-        });
-        
-        closeRegister.addEventListener('click', () => {
-            registerModal.classList.add('hidden');
-            registerForm.reset();
-        });
-        
-        loginForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const username = document.getElementById('login-username').value;
-            const password = document.getElementById('login-password').value;
-            
-            const users = JSON.parse(localStorage.getItem('mutech_users'));
-            
-            if (users[username] && users[username].password === password) {
-                localStorage.setItem('mutech_logged_in', username);
-                loginModal.classList.add('hidden');
-                loginForm.reset();
-                
-                checkLogin();
-            } else {
-                alert('Invalid username or password');
-            }
-        });
-        
-        registerForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            
-            const username = document.getElementById('register-username').value;
-            const password = document.getElementById('register-password').value;
-            const referral = document.getElementById('referral-code').value;
-            
-            const users = JSON.parse(localStorage.getItem('mutech_users'));
-            
-            if (users[username]) {
-                alert('Username already exists');
-                return;
-            }
-            
-            // Generate a referral code for the new user
-            const referralCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-            
-            // Create new user with registration bonus
-            users[username] = {
-                username,
-                password,
-                referralCode,
-                wallet: 1000, // ₦1000 registration bonus
-                activeInvestments: [],
-                referralEarnings: 0,
-                deposited: false
-            };
-            
-            // If referral code was provided, give bonus to referrer
-            if (referral) {
-                const referringUser = Object.values(users).find(u => u.referralCode === referral);
-                if (referringUser) {
-                    referringUser.referralEarnings += 200;
-                    users[referringUser.username] = referringUser;
-                    
-                    // Give the new user an additional bonus if they were referred
-                    users[username].wallet += 200;
-                }
-            }
-            
-            localStorage.setItem('mutech_users', JSON.stringify(users));
-            localStorage.setItem('mutech_logged_in', username);
-            
-            registerModal.classList.add('hidden');
-            registerForm.reset();
-            
-            checkLogin();
-            
-            // Show welcome message with referral bonus
-            alert(`Welcome ${username}! You've received ₦1000 registration bonus. Your referral code is ${referralCode}`);
-        });
-        
-        logoutBtn.addEventListener('click', () => {
-            localStorage.setItem('mutech_logged_in', '');
-            authButtons.classList.remove('hidden');
-            userMenu.classList.add('hidden');
-            dashboard.classList.add('hidden');
-        });
-        
-        depositBtn.addEventListener('click', () => {
-            depositModal.classList.remove('hidden');
-        });
-        
-        closeDeposit.addEventListener('click', () => {
-            depositModal.classList.add('hidden');
-        });
-        
-        confirmDeposit.addEventListener('click', () => {
-            const amount = Number(document.getElementById('deposit-amount').value);
-            const proof = document.getElementById('deposit-proof').files[0];
-            
-            if (!amount || amount <= 0) {
-                alert('Please enter a valid deposit amount');
-                return;
-            }
-            
-            if (!proof) {
-                alert('Please upload payment proof');
-                return;
-            }
-            
-            const users = JSON.parse(localStorage.getItem('mutech_users'));
-            const username = localStorage.getItem('mutech_logged_in');
-            const user = users[username];
-            
-            // In a real app, you would verify the payment on the backend
-            // For this demo, we'll just simulate it
-            user.wallet += amount;
-            user.deposited = true;
-            users[username] = user;
-            localStorage.setItem('mutech_users', JSON.stringify(users));
-            
-            depositModal.classList.add('hidden');
-            document.getElementById('deposit-amount').value = '';
-            document.getElementById('deposit-proof').value = '';
-            
-            updateDashboard(user);
-            
-            alert(`Deposit of ₦${amount.toLocaleString()} successful! Your wallet has been credited.`);
-            
-            // Enable withdrawal button if minimum deposit was made
-            withdrawBtn.classList.remove('bg-gray-200');
-            withdrawBtn.classList.add('gradient-bg');
-        });
-        
-        withdrawBtn.addEventListener('click', () => {
-            const users = JSON.parse(localStorage.getItem('mutech_users'));
-            const username = localStorage.getItem('mutech_logged_in');
-            const user = users[username];
-            
-            if (!user.deposited) {
-                document.getElementById('withdraw-error').classList.remove('hidden');
-                withdrawBtn.classList.remove('gradient-bg');
-                withdrawBtn.classList.add('bg-gray-200');
-                return;
-            }
-            
-            document.getElementById('withdraw-error').classList.add('hidden');
-            withdrawModal.classList.remove('hidden');
-            withdrawForm.classList.remove('hidden');
-            withdrawSuccess.classList.add('hidden');
-        });
-        
-        closeWithdraw.addEventListener('click', () => {
-            withdrawModal.classList.add('hidden');
-        });
-        
-        confirmWithdraw.addEventListener('click', () => {
-            const amount = Number(document.getElementById('withdraw-amount').value);
-            const bankName = document.getElementById('bank-name').value;
-            const accountNumber = document.getElementById('account-number-input').value;
-            const accountName = document.getElementById('account-name').value;
-            
-            if (!amount || amount < 1700) {
-                alert('Minimum withdrawal amount is ₦1700');
-                return;
-            }
-            
-            if (!bankName || !accountNumber || !accountName) {
-                alert('Please fill all bank details');
-                return;
-            }
-            
-            const users = JSON.parse(localStorage.getItem('mutech_users'));
-            const username = localStorage.getItem('mutech_logged_in');
-            const user = users[username];
-            
-            if (amount > user.wallet) {
-                alert('Insufficient funds');
-                return;
-            }
-            
-            // Simulate withdrawal
-            user.wallet -= amount;
-            users[username] = user;
-            localStorage.setItem('mutech_users', JSON.stringify(users));
-            
-            withdrawForm.classList.add('hidden');
-            withdrawSuccess.classList.remove('hidden');
-            
-            updateDashboard(user);
-        });
-        
-        closeWithdrawSuccess.addEventListener('click', () => {
-            withdrawModal.classList.add('hidden');
-        });
-        
-        investBtn.addEventListener('click', () => {
-            investModal.classList.remove('hidden');
-        });
-        
-        closeInvest.addEventListener('click', () => {
-            investModal.classList.add('hidden');
-        });
-        
-        investPlanBtns.forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const plan = btn.dataset.plan;
-                document.getElementById('invest-plan-select').value = plan;
-                investModal.classList.remove('hidden');
-            });
-        });
-        
-        confirmInvest.addEventListener('click', () => {
-            const amount = Number(document.getElementById('invest-amount').value);
-            const plan = document.getElementById('invest-plan-select').value;
-            
-            if (!amount || amount <= 0) {
-                alert('Please enter a valid investment amount');
-                return;
-            }
-            
-            const users = JSON.parse(localStorage.getItem('mutech_users'));
-            const username = localStorage.getItem('mutech_logged_in');
-            const user = users[username];
-            
-            if (amount > user.wallet) {
-                alert('Insufficient funds');
-                return;
-            }
-            
-            // Check plan minimum/maximum
-            let min, max, roi;
-            
-            switch (plan) {
-                case 'starter':
-                    min = 1000;
-                    max = 10000;
-                    roi = 20;
-                    break;
-                case 'premium':
-                    min = 10000;
-                    max = 50000;
-                    roi = 50;
-                    break;
-                case 'executive':
-                    min = 50000;
-                    max = 500000;
-                    roi = 100;
-                    break;
-            }
-            
-            if (amount < min || amount > max) {
-                alert(`This plan accepts investments between ₦${min.toLocaleString()} and ₦${max.toLocaleString()}`);
-                return;
-            }
-            
-            // Deduct from wallet
-            user.wallet -= amount;
-            
-            // Add investment
-            const currentDate = new Date();
-            const investment = {
-                plan,
-                amount,
-                roi,
-                date: currentDate.toLocaleDateString(),
-                status: 'active',
-                collected: false,
-                profit: 0
-            };
-            
-            user.activeInvestments.push(investment);
-            users[username] = user;
-            localStorage.setItem('mutech_users', JSON.stringify(users));
-            
-            investModal.classList.add('hidden');
-            document.getElementById('invest-amount').value = '';
-            
-            updateDashboard(user);
-            
-            alert(`You've successfully invested ₦${amount.toLocaleString()} in the ${plan} plan.`);
-        });
-        
-        closeCollect.addEventListener('click', () => {
-            collectModal.classList.add('hidden');
-        });
-        
-        confirmCollect.addEventListener('click', () => {
-            const index = confirmCollect.dataset.index;
-            
-            const users = JSON.parse(localStorage.getItem('mutech_users'));
-            const username = localStorage.getItem('mutech_logged_in');
-            const user = users[username];
-            const investment = user.activeInvestments[index];
-            
-            // Add profit to wallet
-            user.wallet += investment.amount + investment.profit;
-            investment.collected = true;
-            
-            users[username] = user;
-            localStorage.setItem('mutech_users', JSON.stringify(users));
-            
-            collectModal.classList.add('hidden');
-            updateDashboard(user);
-            
-            alert(`You've collected ₦${(investment.amount + investment.profit).toLocaleString()} from your investment.`);
-        });
-        
-        referralBtn.addEventListener('click', () => {
-            const users = JSON.parse(localStorage.getItem('mutech_users'));
-            const username = localStorage.getItem('mutech_logged_in');
-            const user = users[username];
-            
-            referralLink.value = `https://mutech.com/register?ref=${user.referralCode}`;
-            
-            // Update referral stats
-            const referralStats = referralModal.querySelectorAll('p.text-xl');
-            const referrals = Object.values(users).filter(u => u.referrer === username).length;
-            referralStats[0].textContent = referrals;
-            referralStats[1].textContent = `₦${user.referralEarnings.toLocaleString()}`;
-            
-            referralModal.classList.remove('hidden');
-        });
-        
-        closeReferral.addEventListener('click', () => {
-            referralModal.classList.add('hidden');
-        });
-        
-        copyReferral.addEventListener('click', () => {
-            referralLink.select();
-            document.execCommand('copy');
-            
-            // Show tooltip or notification
-            const tooltip = document.createElement('div');
-            tooltip.className = 'absolute top-10 right-0 bg-gray-800 text-white px-2 py-1 rounded text-xs';
-            tooltip.textContent = 'Copied!';
-            copyReferral.appendChild(tooltip);
-            
-            setTimeout(() => {
-                tooltip.remove();
-            }, 2000);
-        });
-        
-        // Initialize
-        checkLogin();
-        
-        // If no one is logged in, show a welcome modal
-        if (!localStorage.getItem('mutech_logged_in')) {
-            setTimeout(() => {
-                const welcomeModal = document.createElement('div');
-                welcomeModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-                welcomeModal.innerHTML = `
-                    <div class="bg-white rounded-lg w-full max-w-md p-6 slide-in">
-                        <div class="flex justify-between items-center mb-4">
-                            <h2 class="text-xl font-bold text-dark">Welcome to MUTECH</h2>
-                            <button id="close-welcome" class="text-gray-500 hover:text-gray-700">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <div class="mb-4">
-                            <p class="text-gray-700 mb-2">Start investing today and grow your money with our trusted platform.</p>
-                            <div class="bg-green-50 border-l-4 border-green-500 p-4 mb-4">
-                                <p class="text-green-700"><strong>₦1000 Registration Bonus!</strong> Register now and get free credit.</p>
-                            </div>
-                        </div>
-                        <div class="flex justify-center space-x-4">
-                            <button id="welcome-login" class="px-4 py-2 rounded-md bg-primary text-white font-semibold hover:bg-blue-600 transition">Login</button>
-                            <button id="welcome-register" class="px-4 py-2 rounded-md bg-green-500 text-white font-semibold hover:bg-green-600 transition">Register</button>
-                        </div>
-                    </div>
-                `;
-                
-                document.body.appendChild(welcomeModal);
-                
-                document.getElementById('close-welcome').addEventListener('click', () => {
-                    welcomeModal.remove();
-                });
-                
-                document.getElementById('welcome-login').addEventListener('click', () => {
-                    welcomeModal.remove();
-                    loginModal.classList.remove('hidden');
-                });
-                
-                document.getElementById('welcome-register').addEventListener('click', () => {
-                    welcomeModal.remove();
-                    registerModal.classList.remove('hidden');
-                });
-            }, 1000);
-        }
-    </script>
+    <script src="app.js"></script>
 </body>
-</html>
+                                </html>
