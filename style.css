@@ -1,29 +1,338 @@
-/* General reset */
-* { margin:0; padding:0; box-sizing:border-box; font-family:sans-serif; }
+/* ----------------------------------------------------
+   GLOBAL STYLES
+---------------------------------------------------- */
+:root {
+  --bg: #f4f6f8;
+  --card: #ffffff;
+  --text: #222;
+  --muted: #666;
+  --accent1: #007bff;
+  --accent2: #00b894;
+  --danger: #e74c3c;
+  --border: #e0e0e0;
+}
 
-body { background:#111; color:#fff; transition:0.3s; }
-body.light-mode { background:#f5f5f5; color:#111; }
+.dark {
+  --bg: #101010;
+  --card: #1a1a1a;
+  --text: #f5f5f5;
+  --muted: #aaa;
+  --accent1: #3399ff;
+  --accent2: #55efc4;
+  --danger: #ff6b6b;
+  --border: #333;
+}
 
-header { display:flex; justify-content:space-between; align-items:center; padding:10px; background:#222; }
-body.light-mode header { background:#ddd; }
-header h1 { font-size:1.2rem; }
-header button { margin-left:5px; cursor:pointer; }
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
 
-.hidden { display:none; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  padding-bottom: 50px;
+}
 
-section { padding:20px; }
-.wallet, .investment-history { margin-bottom:20px; }
-.wallet button { margin:5px; padding:5px 10px; cursor:pointer; }
-.investment-history table { width:100%; border-collapse:collapse; }
-.investment-history th, .investment-history td { border:1px solid #555; padding:5px; text-align:center; }
+.hidden {
+  display: none !important;
+}
 
-.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); justify-content:center; align-items:center; }
-.modal.active { display:flex; }
-.modal-content { background:#222; padding:20px; border-radius:5px; width:90%; max-width:400px; position:relative; }
-body.light-mode .modal-content { background:#fff; color:#111; }
+/* ----------------------------------------------------
+   NAVIGATION
+---------------------------------------------------- */
+nav {
+  display: flex;
+  justify-content: space-between;
+  padding: 15px 20px;
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
 
-.close-btn { position:absolute; top:10px; right:10px; cursor:pointer; font-size:1.2rem; }
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-input, select, button { width:100%; margin:5px 0; padding:8px; border-radius:5px; border:none; }
-button { background:#4CAF50; color:#fff; }
-body.light-mode button { background:#4CAF50; color:#fff; }
+.logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
+  background: var(--accent1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-weight: bold;
+}
+
+.brand h1 {
+  font-size: 18px;
+}
+
+.tagline {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.nav-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.theme-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+/* ----------------------------------------------------
+   BUTTONS
+---------------------------------------------------- */
+.btn {
+  padding: 8px 16px;
+  outline: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  border: none;
+}
+
+.btn-primary {
+  background: var(--accent1);
+  color: #fff;
+}
+
+.btn-outline {
+  background: transparent;
+  border: 1px solid var(--accent1);
+  color: var(--accent1);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+/* ----------------------------------------------------
+   SECTIONS & CARDS
+---------------------------------------------------- */
+.container {
+  width: 100%;
+  max-width: 900px;
+  margin: 20px auto;
+}
+
+.card {
+  background: var(--card);
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+}
+
+/* ----------------------------------------------------
+   PLANS
+---------------------------------------------------- */
+.plans {
+  display: flex;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.plan {
+  flex: 1;
+  background: var(--card);
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.plan h4 {
+  margin-bottom: 10px;
+}
+
+.small {
+  font-size: 13px;
+}
+
+/* ----------------------------------------------------
+   STATS
+---------------------------------------------------- */
+.stats {
+  display: flex;
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.stat-card {
+  flex: 1;
+  padding: 15px;
+  background: var(--card);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.value {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* ----------------------------------------------------
+   TABLES
+---------------------------------------------------- */
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+table th, table td {
+  padding: 10px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+}
+
+table th {
+  background: var(--bg);
+  font-weight: 600;
+}
+
+/* ----------------------------------------------------
+   ADMIN ITEMS
+---------------------------------------------------- */
+.admin-item {
+  border: 1px solid var(--border);
+  padding: 10px;
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+
+.admin-btn-wrap {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* ----------------------------------------------------
+   MODALS
+---------------------------------------------------- */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  padding: 15px;
+  z-index: 200;
+}
+
+.modal-content {
+  background: var(--card);
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+  border-radius: 10px;
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.close-btn {
+  background: transparent;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  font-size: 14px;
+}
+
+input, select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+}
+
+.mt-1 {
+  margin-top: 10px;
+}
+
+/* ----------------------------------------------------
+   REFERRAL BOX
+---------------------------------------------------- */
+#referralLink {
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+
+/* ----------------------------------------------------
+   DEPOSIT BOX
+---------------------------------------------------- */
+.deposit-box {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  margin-top: 20px;
+}
+
+.deposit-actions {
+  margin-top: 15px;
+  display: flex;
+  gap: 10px;
+}
+
+#copyMsg {
+  color: var(--accent2);
+}
+
+/* ----------------------------------------------------
+   RESPONSIVE
+---------------------------------------------------- */
+@media (max-width: 650px) {
+  .plans {
+    flex-direction: column;
+  }
+  .stats {
+    flex-direction: column;
+  }
+}
