@@ -1,35 +1,193 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>MUTECH Investment Platform</title>
-  <!-- Link to external CSS -->
-  <link rel="stylesheet" href="style.css">
-  <!-- Google font kept as in your original -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MUTECH Investment Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Poppins', sans-serif;
+  background: #0a0e27;
+  color: #fff;
+  line-height: 1.6;
+  min-height: 100vh;
+  padding-bottom: 50px;
+}
+
+.container { max-width: 1200px; margin: 0 auto; padding: 1rem; }
+
+nav {
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  padding: 1rem;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+}
+
+.nav-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+
+.logo { width: 50px; height: 50px; background: linear-gradient(135deg, #ffd700, #ffed4e); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 700; color: #764ba2; }
+
+.brand h1 { font-size: 1.3rem; margin: 0; }
+.brand .tagline { font-size: 0.8rem; opacity: 0.9; }
+
+.nav-buttons { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+.btn {
+  padding: 0.7rem 1.2rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+  touch-action: manipulation;
+}
+
+.btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+.btn-outline { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: white; }
+.btn-ghost { background: transparent; color: white; }
+
+.card {
+  background: rgba(255,255,255,0.05);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.plans { display: grid; grid-template-columns: 1fr; gap: 1rem; margin: 1rem 0; }
+
+@media (min-width: 600px) {
+  .plans { grid-template-columns: repeat(3, 1fr); }
+}
+
+.plan {
+  background: rgba(255,255,255,0.05);
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid rgba(255,255,255,0.1);
+}
+
+.plan h4 { color: #667eea; margin-bottom: 0.5rem; }
+
+.stats { display: grid; grid-template-columns: 1fr; gap: 1rem; margin: 1rem 0; }
+
+@media (min-width: 600px) {
+  .stats { grid-template-columns: repeat(3, 1fr); }
+}
+
+.stat-card { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 12px; text-align: center; }
+.stat-card .label { font-size: 0.85rem; opacity: 0.8; margin-bottom: 0.5rem; }
+.stat-card .value { font-size: 1.5rem; font-weight: 700; color: #667eea; }
+
+.table-wrap { overflow-x: auto; margin: 1rem 0; }
+table { width: 100%; border-collapse: collapse; min-width: 500px; }
+th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid rgba(255,255,255,0.1); }
+th { background: rgba(255,255,255,0.05); font-weight: 600; }
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.9);
+  z-index: 9999;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.modal.show { display: block; }
+
+.modal-content {
+  background: #1a1e3a;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 90%;
+  margin: 2rem auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  cursor: pointer;
+  color: #fff;
+  padding: 0;
+  line-height: 1;
+}
+
+.form-group { margin-bottom: 1rem; }
+.form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-family: inherit;
+  font-size: 16px;
+}
+
+.deposit-box {
+  background: linear-gradient(135deg, rgba(102,126,234,0.1), rgba(118,75,162,0.1));
+  padding: 1.5rem;
+  border-radius: 12px;
+  margin: 1rem 0;
+  border: 1px solid rgba(102,126,234,0.3);
+}
+
+.deposit-actions { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
+
+.admin-item { background: rgba(255,255,255,0.05); padding: 1rem; border-radius: 8px; margin-bottom: 0.5rem; }
+.admin-actions { display: flex; gap: 0.5rem; margin-top: 0.5rem; flex-wrap: wrap; }
+
+.hidden { display: none !important; }
+.muted { opacity: 0.7; }
+.small { font-size: 0.85rem; }
+.mt-1 { margin-top: 1rem; }
+</style>
 </head>
 <body>
 
 <div class="container">
   <nav>
-    <div class="logo-section">
-      <div class="logo">M</div>
-      <div class="brand">
-        <h1>MUTECH</h1>
-        <div class="tagline">Investment Platform</div>
+    <div class="nav-header">
+      <div style="display: flex; align-items: center; gap: 1rem;">
+        <div class="logo">M</div>
+        <div class="brand">
+          <h1>MUTECH</h1>
+          <div class="tagline">Investment Platform</div>
+        </div>
       </div>
-    </div>
-    <div class="nav-controls">
-      <button class="theme-btn" id="themeToggle" title="Toggle theme">🌙</button>
-      <div id="authButtons">
-        <button class="btn btn-primary" id="loginBtn">Login</button>
-        <button class="btn btn-outline" id="registerBtn">Register</button>
-      </div>
-      <div id="userInfo" class="hidden">
-        <span id="username"></span>
-        <button class="btn btn-ghost" id="logoutBtn">Logout</button>
-        <button class="btn btn-primary hidden" id="adminBtn">Admin</button>
+      <div class="nav-buttons">
+        <div id="authButtons">
+          <button class="btn btn-primary" onclick="openLoginModal()">Login</button>
+          <button class="btn btn-outline" onclick="openRegisterModal()">Register</button>
+        </div>
+        <div id="userInfo" class="hidden">
+          <span id="username" style="margin-right: 0.5rem;"></span>
+          <button class="btn btn-ghost" onclick="logout()">Logout</button>
+          <button class="btn btn-primary hidden" id="adminBtn" onclick="showAdminPanel()">Admin</button>
+        </div>
       </div>
     </div>
   </nav>
@@ -44,19 +202,19 @@
           <h4>Starter</h4>
           <p>₦5,000 - ₦10,000</p>
           <p class="muted small">ROI: 20%</p>
-          <button class="btn btn-primary plan-btn" data-plan="starter">Choose Plan</button>
+          <button class="btn btn-primary" onclick="choosePlan('starter')">Choose Plan</button>
         </div>
         <div class="plan">
           <h4>Premium</h4>
-          <p>₦5,000 - ₦50,000</p>
+          <p>₦10,000 - ₦50,000</p>
           <p class="muted small">ROI: 50%</p>
-          <button class="btn btn-primary plan-btn" data-plan="premium">Choose Plan</button>
+          <button class="btn btn-primary" onclick="choosePlan('premium')">Choose Plan</button>
         </div>
         <div class="plan">
           <h4>Executive</h4>
-          <p>₦5,000 - ₦500,000</p>
+          <p>₦50,000 - ₦500,000</p>
           <p class="muted small">ROI: 100%</p>
-          <button class="btn btn-primary plan-btn" data-plan="executive">Choose Plan</button>
+          <button class="btn btn-primary" onclick="choosePlan('executive')">Choose Plan</button>
         </div>
       </div>
 
@@ -64,12 +222,11 @@
         <h3>Deposit Account Details</h3>
         <p><strong>Bank:</strong> Kuda Bank</p>
         <p><strong>Account Name:</strong> MUTECH INVESTMENT</p>
-        <p><strong>Account Number:</strong> <span id="accountNumber">2014613557</span></p>
+        <p><strong>Account Number:</strong> 2014613557</p>
         <div class="deposit-actions">
-          <button class="btn btn-primary" id="copyAccountBtn">Copy Account Number</button>
-          <button class="btn btn-outline" id="submitProofBtn">Submit Proof</button>
+          <button class="btn btn-primary" onclick="copyAccount()">Copy Account</button>
+          <button class="btn btn-outline" onclick="openDepositModal()">Submit Proof</button>
         </div>
-        <p id="copyMsg" class="muted small hidden mt-1">✓ Copied to clipboard</p>
       </div>
     </div>
   </section>
@@ -93,23 +250,17 @@
       </div>
 
       <div class="deposit-actions">
-        <button class="btn btn-primary" id="depositBtn">Deposit</button>
-        <button class="btn btn-outline" id="withdrawBtn">Withdraw</button>
-        <button class="btn btn-primary" id="investBtn">Invest</button>
-        <button class="btn btn-ghost" id="referralBtn">Referral</button>
+        <button class="btn btn-primary" onclick="openDepositModal()">Deposit</button>
+        <button class="btn btn-outline" onclick="openWithdrawModal()">Withdraw</button>
+        <button class="btn btn-primary" onclick="openInvestModal()">Invest</button>
+        <button class="btn btn-ghost" onclick="openReferralModal()">Referral</button>
       </div>
 
       <h3 class="mt-1">Investment History</h3>
       <div class="table-wrap">
         <table>
           <thead>
-            <tr>
-              <th>Plan</th>
-              <th>Amount</th>
-              <th>ROI</th>
-              <th>Date</th>
-              <th>Status</th>
-            </tr>
+            <tr><th>Plan</th><th>Amount</th><th>ROI</th><th>Date</th><th>Status</th></tr>
           </thead>
           <tbody id="investmentHistory"></tbody>
         </table>
@@ -135,156 +286,152 @@
         </div>
       </div>
 
+      <h3 class="mt-1">Registered Users</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Email</th><th>Password</th><th>Wallet</th><th>Investments</th><th>Referral Earnings</th><th>Date Joined</th></tr>
+          </thead>
+          <tbody id="usersList"></tbody>
+        </table>
+      </div>
+
       <h3 class="mt-1">Pending Deposits</h3>
       <div id="pendingDepositsList"></div>
 
       <h3 class="mt-1">Pending Withdrawals</h3>
       <div id="pendingWithdrawalsList"></div>
-
-      <h3 class="mt-1">Pending Investments</h3>
-      <div id="pendingInvestmentsList"></div>
-
-      <h3 class="mt-1">Registered Users</h3>
-      <div id="usersList"></div>
     </div>
   </section>
 </div>
 
-<!-- LOGIN MODAL -->
+<!-- Login Modal -->
 <div id="loginModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
       <h3>Login</h3>
-      <button class="close-btn" data-modal="loginModal">&times;</button>
+      <button class="close-btn" onclick="closeModal('loginModal')">&times;</button>
     </div>
-    <form id="loginForm">
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="loginEmail" required>
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="loginPassword" required>
-      </div>
-      <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
-      <p class="muted small mt-1">Don't have an account? <a href="#" id="switchToRegister" style="color: var(--accent1);">Register here</a></p>
-    </form>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="loginEmail">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="loginPassword">
+    </div>
+    <button class="btn btn-primary" style="width: 100%;" onclick="handleLogin()">Login</button>
+    <p class="muted small mt-1">Don't have an account? <a href="#" onclick="switchToRegister(); return false;" style="color: #667eea;">Register here</a></p>
   </div>
 </div>
 
-<!-- REGISTER MODAL -->
+<!-- Register Modal -->
 <div id="registerModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
       <h3>Register</h3>
-      <button class="close-btn" data-modal="registerModal">&times;</button>
+      <button class="close-btn" onclick="closeModal('registerModal')">&times;</button>
     </div>
-    <form id="registerForm">
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="registerEmail" required>
-      </div>
-      <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="registerPassword" required>
-      </div>
-      <div class="form-group">
-        <label>Referral Code (Optional)</label>
-        <input type="text" id="referralCode">
-      </div>
-      <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
-      <p class="muted small mt-1">Already have an account? <a href="#" id="switchToLogin" style="color: var(--accent1);">Login here</a></p>
-    </form>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="registerEmail">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="registerPassword">
+    </div>
+    <div class="form-group">
+      <label>Referral Code (Optional)</label>
+      <input type="text" id="referralCode">
+    </div>
+    <button class="btn btn-primary" style="width: 100%;" onclick="handleRegister()">Register</button>
+    <p class="muted small mt-1">Already have an account? <a href="#" onclick="switchToLogin(); return false;" style="color: #667eea;">Login here</a></p>
   </div>
 </div>
 
-<!-- DEPOSIT MODAL -->
+<!-- Deposit Modal -->
 <div id="depositModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
       <h3>Submit Deposit Proof</h3>
-      <button class="close-btn" data-modal="depositModal">&times;</button>
+      <button class="close-btn" onclick="closeModal('depositModal')">&times;</button>
     </div>
     <p class="muted small">Transfer to: Kuda Bank • 2014613557 • MUTECH INVESTMENT</p>
     <div class="form-group">
       <label>Amount (₦)</label>
-      <input type="number" id="depositAmount" min="1" required>
+      <input type="number" id="depositAmount" min="1">
     </div>
     <div class="form-group">
       <label>Upload Proof (Image)</label>
-      <input type="file" id="depositProof" accept="image/*" required>
+      <input type="file" id="depositProof" accept="image/*">
     </div>
     <div id="proofPreview" class="mt-1"></div>
-    <button type="button" class="btn btn-primary" id="submitDepositBtn" style="width: 100%;">Submit Proof</button>
+    <button class="btn btn-primary" style="width: 100%;" onclick="submitDeposit()">Submit Proof</button>
   </div>
 </div>
 
-<!-- WITHDRAW MODAL -->
+<!-- Withdraw Modal -->
 <div id="withdrawModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
       <h3>Request Withdrawal</h3>
-      <button class="close-btn" data-modal="withdrawModal">&times;</button>
+      <button class="close-btn" onclick="closeModal('withdrawModal')">&times;</button>
     </div>
-    <form id="withdrawForm">
-      <div class="form-group">
-        <label>Amount (₦)</label>
-        <input type="number" id="withdrawAmount" min="8000" required>
-      </div>
-      <div class="form-group">
-        <label>Bank Name</label>
-        <input type="text" id="bankName" required>
-      </div>
-      <div class="form-group">
-        <label>Account Number</label>
-        <input type="text" id="accountNum" required>
-      </div>
-      <div class="form-group">
-        <label>Account Name</label>
-        <input type="text" id="accountName" required>
-      </div>
-      <button type="submit" class="btn btn-primary" style="width: 100%;">Request Withdrawal</button>
-    </form>
+    <div class="form-group">
+      <label>Amount (₦)</label>
+      <input type="number" id="withdrawAmount" min="8000">
+    </div>
+    <div class="form-group">
+      <label>Bank Name</label>
+      <input type="text" id="bankName">
+    </div>
+    <div class="form-group">
+      <label>Account Number</label>
+      <input type="text" id="accountNum">
+    </div>
+    <div class="form-group">
+      <label>Account Name</label>
+      <input type="text" id="accountName">
+    </div>
+    <button class="btn btn-primary" style="width: 100%;" onclick="submitWithdraw()">Request Withdrawal</button>
   </div>
 </div>
 
-<!-- INVEST MODAL -->
+<!-- Invest Modal -->
 <div id="investModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
       <h3>Make Investment</h3>
-      <button class="close-btn" data-modal="investModal">&times;</button>
+      <button class="close-btn" onclick="closeModal('investModal')">&times;</button>
     </div>
-    <form id="investForm">
-      <div class="form-group">
-        <label>Plan</label>
-        <select id="investPlan" required>
-          <option value="starter">Starter (₦5K-10K, 20% ROI)</option>
-          <option value="premium">Premium (₦5K-50K, 50% ROI)</option>
-          <option value="executive">Executive (₦5K-500K, 100% ROI)</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Amount (₦)</label>
-        <input type="number" id="investAmount" min="5000" required>
-      </div>
-      <button type="submit" class="btn btn-primary" style="width: 100%;">Invest Now</button>
-    </form>
+    <div class="form-group">
+      <label>Plan</label>
+      <select id="investPlan">
+        <option value="starter">Starter (₦5K-10K, 20% ROI)</option>
+        <option value="premium">Premium (₦10K-50K, 50% ROI)</option>
+        <option value="executive">Executive (₦50K-500K, 100% ROI)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Amount (₦)</label>
+      <input type="number" id="investAmount" min="5000">
+    </div>
+    <button class="btn btn-primary" style="width: 100%;" onclick="submitInvest()">Invest Now</button>
   </div>
 </div>
 
-<!-- REFERRAL MODAL -->
+<!-- Referral Modal -->
 <div id="referralModal" class="modal">
   <div class="modal-content">
     <div class="modal-header">
       <h3>Referral Program</h3>
-      <button class="close-btn" data-modal="referralModal">&times;</button>
+      <button class="close-btn" onclick="closeModal('referralModal')">&times;</button>
     </div>
     <div class="form-group">
       <label>Your Referral Link</label>
       <input type="text" id="referralLink" readonly>
     </div>
-    <button type="button" class="btn btn-primary" id="copyReferralBtn" style="width: 100%;">Copy Link</button>
+    <button class="btn btn-primary" style="width: 100%;" onclick="copyReferral()">Copy Link</button>
     <div class="mt-1">
       <p>Total Earnings: <strong id="referralTotal">₦0</strong></p>
       <p>Total Referrals: <strong id="referralCount">0</strong></p>
@@ -292,8 +439,585 @@
   </div>
 </div>
 
-<!-- Script -->
-<!-- Link to external JS -->
-<script src="app.js" defer></script>
+<script>
+// Storage functions
+function getUsers() {
+  var data = localStorage.getItem('mutech_users');
+  return data ? JSON.parse(data) : {};
+}
+
+function saveUsers(users) {
+  localStorage.setItem('mutech_users', JSON.stringify(users));
+}
+
+function getDeposits() {
+  var data = localStorage.getItem('mutech_deposits');
+  return data ? JSON.parse(data) : [];
+}
+
+function saveDeposits(deposits) {
+  localStorage.setItem('mutech_deposits', JSON.stringify(deposits));
+}
+
+function getWithdrawals() {
+  var data = localStorage.getItem('mutech_withdrawals');
+  return data ? JSON.parse(data) : [];
+}
+
+function saveWithdrawals(withdrawals) {
+  localStorage.setItem('mutech_withdrawals', JSON.stringify(withdrawals));
+}
+
+function getCurrentUser() {
+  return localStorage.getItem('mutech_current_user');
+}
+
+function setCurrentUser(email) {
+  localStorage.setItem('mutech_current_user', email);
+}
+
+function clearCurrentUser() {
+  localStorage.removeItem('mutech_current_user');
+}
+
+// Initialize storage
+function initStorage() {
+  var users = getUsers();
+  if (!users['declantessa@gmail.com']) {
+    users['declantessa@gmail.com'] = {
+      email: 'declantessa@gmail.com',
+      password: 'BAMIDELE!1',
+      wallet: 0,
+      investments: [],
+      referralCode: 'ADMIN001',
+      referralEarnings: 0,
+      referredBy: null,
+      isAdmin: true
+    };
+    saveUsers(users);
+  }
+}
+
+// Modal functions
+function openLoginModal() {
+  document.getElementById('loginModal').classList.add('show');
+}
+
+function openRegisterModal() {
+  document.getElementById('registerModal').classList.add('show');
+}
+
+function openDepositModal() {
+  if (!getCurrentUser()) {
+    alert('Please login first!');
+    openLoginModal();
+    return;
+  }
+  document.getElementById('depositModal').classList.add('show');
+}
+
+function openWithdrawModal() {
+  document.getElementById('withdrawModal').classList.add('show');
+}
+
+function openInvestModal() {
+  document.getElementById('investModal').classList.add('show');
+}
+
+function openReferralModal() {
+  var email = getCurrentUser();
+  var users = getUsers();
+  var user = users[email];
+  
+  document.getElementById('referralLink').value = window.location.origin + window.location.pathname + '?ref=' + user.referralCode;
+  document.getElementById('referralTotal').textContent = '₦' + user.referralEarnings.toLocaleString();
+  
+  var count = 0;
+  for (var key in users) {
+    if (users[key].referredBy === user.referralCode) count++;
+  }
+  document.getElementById('referralCount').textContent = count;
+  
+  document.getElementById('referralModal').classList.add('show');
+}
+
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove('show');
+}
+
+function switchToRegister() {
+  closeModal('loginModal');
+  openRegisterModal();
+}
+
+function switchToLogin() {
+  closeModal('registerModal');
+  openLoginModal();
+}
+
+function choosePlan(plan) {
+  if (!getCurrentUser()) {
+    alert('Please login first to choose a plan!');
+    openLoginModal();
+    return;
+  }
+  document.getElementById('investPlan').value = plan;
+  openInvestModal();
+}
+
+// Register
+function handleRegister() {
+  var email = document.getElementById('registerEmail').value.toLowerCase().trim();
+  var password = document.getElementById('registerPassword').value;
+  var referralCode = document.getElementById('referralCode').value.trim();
+  
+  if (!email || !password) {
+    alert('Please fill in all required fields!');
+    return;
+  }
+  
+  var users = getUsers();
+  
+  if (users[email]) {
+    alert('User already exists! Please login instead.');
+    closeModal('registerModal');
+    openLoginModal();
+    return;
+  }
+  
+  var newUser = {
+    email: email,
+    password: password,
+    wallet: 1000,
+    investments: [],
+    referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
+    referralEarnings: 0,
+    referredBy: referralCode || null,
+    isAdmin: false,
+    dateJoined: new Date().toLocaleDateString()
+  };
+  
+  if (referralCode) {
+    for (var key in users) {
+      if (users[key].referralCode === referralCode) {
+        users[key].referralEarnings += 200;
+        users[key].wallet += 200;
+        newUser.wallet += 200;
+        break;
+      }
+    }
+  }
+  
+  users[email] = newUser;
+  saveUsers(users);
+  
+  setCurrentUser(email);
+  closeModal('registerModal');
+  alert('Registration successful! Welcome to MUTECH! You received ₦1,000 bonus!');
+  showDashboard();
+}
+
+// Login
+function handleLogin() {
+  var email = document.getElementById('loginEmail').value.toLowerCase().trim();
+  var password = document.getElementById('loginPassword').value;
+  
+  if (!email || !password) {
+    alert('Please enter both email and password!');
+    return;
+  }
+  
+  var users = getUsers();
+  var user = users[email];
+  
+  if (user && user.password === password) {
+    setCurrentUser(email);
+    closeModal('loginModal');
+    
+    if (user.isAdmin === true) {
+      alert('Welcome Admin!');
+      showAdminPanel();
+    } else {
+      alert('Welcome back!');
+      showDashboard();
+    }
+  } else {
+    alert('Invalid email or password!');
+  }
+}
+
+// Logout
+function logout() {
+  clearCurrentUser();
+  location.reload();
+}
+
+// Show Dashboard
+function showDashboard() {
+  var email = getCurrentUser();
+  var users = getUsers();
+  var user = users[email];
+  
+  document.getElementById('authButtons').classList.add('hidden');
+  document.getElementById('userInfo').classList.remove('hidden');
+  document.getElementById('username').textContent = email;
+  document.getElementById('landingSection').classList.add('hidden');
+  document.getElementById('dashboardSection').classList.remove('hidden');
+  document.getElementById('adminSection').classList.add('hidden');
+  document.getElementById('adminBtn').classList.add('hidden');
+  
+  document.getElementById('walletBalance').textContent = '₦' + user.wallet.toLocaleString();
+  
+  var totalInvested = 0;
+  for (var i = 0; i < user.investments.length; i++) {
+    totalInvested += user.investments[i].amount;
+  }
+  document.getElementById('activeInvestments').textContent = '₦' + totalInvested.toLocaleString();
+  document.getElementById('referralEarnings').textContent = '₦' + user.referralEarnings.toLocaleString();
+  
+  var tbody = document.getElementById('investmentHistory');
+  tbody.innerHTML = '';
+  for (var i = 0; i < user.investments.length; i++) {
+    var inv = user.investments[i];
+    var tr = document.createElement('tr');
+    tr.innerHTML = '<td>' + inv.plan.charAt(0).toUpperCase() + inv.plan.slice(1) + '</td><td>₦' + inv.amount.toLocaleString() + '</td><td>' + inv.roi + '%</td><td>' + inv.date + '</td><td>' + inv.status + '</td>';
+    tbody.appendChild(tr);
+  }
+}
+
+// Show Admin Panel
+function showAdminPanel() {
+  var email = getCurrentUser();
+  var users = getUsers();
+  var user = users[email];
+  
+  if (!user || !user.isAdmin) {
+    alert('Access denied!');
+    clearCurrentUser();
+    location.reload();
+    return;
+  }
+  
+  document.getElementById('authButtons').classList.add('hidden');
+  document.getElementById('userInfo').classList.remove('hidden');
+  document.getElementById('username').textContent = 'Admin';
+  document.getElementById('landingSection').classList.add('hidden');
+  document.getElementById('dashboardSection').classList.add('hidden');
+  document.getElementById('adminSection').classList.remove('hidden');
+  document.getElementById('adminBtn').classList.remove('hidden');
+  
+  var userCount = 0;
+  var totalInv = 0;
+  for (var key in users) {
+    userCount++;
+    var u = users[key];
+    for (var i = 0; i < (u.investments || []).length; i++) {
+      totalInv += u.investments[i].amount;
+    }
+  }
+  document.getElementById('totalUsers').textContent = userCount;
+  document.getElementById('totalInvestments').textContent = '₦' + totalInv.toLocaleString();
+  
+  var deposits = getDeposits();
+  var pendingCount = 0;
+  for (var i = 0; i < deposits.length; i++) {
+    if (deposits[i].status === 'pending') pendingCount++;
+  }
+  document.getElementById('pendingDepositsCount').textContent = pendingCount;
+  
+  // Show all registered users
+  var usersList = document.getElementById('usersList');
+  usersList.innerHTML = '';
+  for (var key in users) {
+    if (!users[key].isAdmin) {
+      var u = users[key];
+      var totalUserInv = 0;
+      for (var i = 0; i < (u.investments || []).length; i++) {
+        totalUserInv += u.investments[i].amount;
+      }
+      var tr = document.createElement('tr');
+      tr.innerHTML = '<td>' + u.email + '</td><td>' + u.password + '</td><td>₦' + (u.wallet || 0).toLocaleString() + '</td><td>₦' + totalUserInv.toLocaleString() + '</td><td>₦' + (u.referralEarnings || 0).toLocaleString() + '</td><td>' + (u.dateJoined || 'N/A') + '</td>';
+      usersList.appendChild(tr);
+    }
+  }
+  
+  var depositsList = document.getElementById('pendingDepositsList');
+  depositsList.innerHTML = '';
+  for (var i = 0; i < deposits.length; i++) {
+    if (deposits[i].status === 'pending') {
+      var deposit = deposits[i];
+      var div = document.createElement('div');
+      div.className = 'admin-item';
+      div.innerHTML = '<p><strong>' + deposit.email + '</strong></p><p>Amount: ₦' + deposit.amount.toLocaleString() + '</p><p class="small muted">' + deposit.date + '</p>' + (deposit.proofData ? '<img src="' + deposit.proofData + '" style="max-width: 200px; border-radius: 8px; margin: 0.5rem 0;">' : '') + '<div class="admin-actions"><button class="btn btn-primary" onclick="approveDeposit(' + i + ')">Approve</button><button class="btn btn-outline" onclick="rejectDeposit(' + i + ')">Reject</button></div>';
+      depositsList.appendChild(div);
+    }
+  }
+  
+  var withdrawals = getWithdrawals();
+  var withdrawalsList = document.getElementById('pendingWithdrawalsList');
+  withdrawalsList.innerHTML = '';
+  for (var i = 0; i < withdrawals.length; i++) {
+    if (withdrawals[i].status === 'pending') {
+      var withdrawal = withdrawals[i];
+      var div = document.createElement('div');
+      div.className = 'admin-item';
+      div.innerHTML = '<p><strong>' + withdrawal.email + '</strong></p><p>Amount: ₦' + withdrawal.amount.toLocaleString() + '</p><p>Bank: ' + withdrawal.bankName + '</p><p>Account: ' + withdrawal.accountNumber + ' - ' + withdrawal.accountName + '</p><p class="small muted">' + withdrawal.date + '</p><div class="admin-actions"><button class="btn btn-primary" onclick="approveWithdrawal(' + i + ')">Approve</button><button class="btn btn-outline" onclick="rejectWithdrawal(' + i + ')">Reject</button></div>';
+      withdrawalsList.appendChild(div);
+    }
+  }
+}
+
+// Admin functions
+function approveDeposit(idx) {
+  var deposits = getDeposits();
+  var deposit = deposits[idx];
+  
+  if (deposit.status !== 'pending') return;
+  
+  var users = getUsers();
+  if (users[deposit.email]) {
+    users[deposit.email].wallet += deposit.amount;
+    saveUsers(users);
+  }
+  
+  deposits[idx].status = 'approved';
+  saveDeposits(deposits);
+  
+  alert('Deposit approved!');
+  showAdminPanel();
+}
+
+function rejectDeposit(idx) {
+  var deposits = getDeposits();
+  deposits[idx].status = 'rejected';
+  saveDeposits(deposits);
+  
+  alert('Deposit rejected!');
+  showAdminPanel();
+}
+
+function approveWithdrawal(idx) {
+  var withdrawals = getWithdrawals();
+  withdrawals[idx].status = 'approved';
+  saveWithdrawals(withdrawals);
+  
+  alert('Withdrawal approved!');
+  showAdminPanel();
+}
+
+function rejectWithdrawal(idx) {
+  var withdrawals = getWithdrawals();
+  var withdrawal = withdrawals[idx];
+  
+  // Return money to user wallet
+  var users = getUsers();
+  if (users[withdrawal.email]) {
+    users[withdrawal.email].wallet += withdrawal.amount;
+    saveUsers(users);
+  }
+  
+  withdrawals[idx].status = 'rejected';
+  saveWithdrawals(withdrawals);
+  
+  alert('Withdrawal rejected! Amount returned to user wallet.');
+  showAdminPanel();
+}
+
+// Copy account
+function copyAccount() {
+  var text = '2014613557';
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(function() {
+      alert('Account number copied!');
+    }).catch(function() {
+      alert('Account Number: 2014613557');
+    });
+  } else {
+    alert('Account Number: 2014613557');
+  }
+}
+
+// Copy referral
+function copyReferral() {
+  var link = document.getElementById('referralLink').value;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(link).then(function() {
+      alert('Referral link copied!');
+    }).catch(function() {
+      alert('Referral link: ' + link);
+    });
+  } else {
+    alert('Referral link: ' + link);
+  }
+}
+
+// Deposit proof preview
+document.getElementById('depositProof').addEventListener('change', function(e) {
+  var file = e.target.files[0];
+  if (file) {
+    var reader = new FileReader();
+    reader.onload = function(event) {
+      document.getElementById('proofPreview').innerHTML = '<img src="' + event.target.result + '" style="max-width: 100%; border-radius: 8px;">';
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+// Submit deposit
+function submitDeposit() {
+  var amount = parseFloat(document.getElementById('depositAmount').value);
+  var proofFile = document.getElementById('depositProof').files[0];
+  
+  if (!amount || amount <= 0) {
+    alert('Please enter a valid amount!');
+    return;
+  }
+  
+  if (!proofFile) {
+    alert('Please upload proof of payment!');
+    return;
+  }
+  
+  var email = getCurrentUser();
+  if (!email) {
+    alert('Please login first!');
+    closeModal('depositModal');
+    openLoginModal();
+    return;
+  }
+  
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var deposits = getDeposits();
+    deposits.push({
+      email: email,
+      amount: amount,
+      proofData: e.target.result,
+      date: new Date().toLocaleString(),
+      status: 'pending'
+    });
+    saveDeposits(deposits);
+    
+    alert('Deposit proof submitted! Waiting for admin approval.');
+    closeModal('depositModal');
+    document.getElementById('depositAmount').value = '';
+    document.getElementById('depositProof').value = '';
+    document.getElementById('proofPreview').innerHTML = '';
+  };
+  reader.readAsDataURL(proofFile);
+}
+
+// Submit withdrawal
+function submitWithdraw() {
+  var amount = parseFloat(document.getElementById('withdrawAmount').value);
+  var bankName = document.getElementById('bankName').value;
+  var accountNumber = document.getElementById('accountNum').value;
+  var accountName = document.getElementById('accountName').value;
+  
+  if (amount < 8000) {
+    alert('Minimum withdrawal is ₦8,000');
+    return;
+  }
+  
+  if (!bankName || !accountNumber || !accountName) {
+    alert('Please fill in all fields!');
+    return;
+  }
+  
+  var email = getCurrentUser();
+  var users = getUsers();
+  var user = users[email];
+  
+  if (amount > user.wallet) {
+    alert('Insufficient balance!');
+    return;
+  }
+  
+  user.wallet -= amount;
+  users[email] = user;
+  saveUsers(users);
+  
+  var withdrawals = getWithdrawals();
+  withdrawals.push({
+    email: email,
+    amount: amount,
+    bankName: bankName,
+    accountNumber: accountNumber,
+    accountName: accountName,
+    date: new Date().toLocaleString(),
+    status: 'pending'
+  });
+  saveWithdrawals(withdrawals);
+  
+  alert('Withdrawal request submitted! Waiting for admin approval.');
+  closeModal('withdrawModal');
+  document.getElementById('withdrawAmount').value = '';
+  document.getElementById('bankName').value = '';
+  document.getElementById('accountNum').value = '';
+  document.getElementById('accountName').value = '';
+  showDashboard();
+}
+
+// Submit investment
+function submitInvest() {
+  var plan = document.getElementById('investPlan').value;
+  var amount = parseFloat(document.getElementById('investAmount').value);
+  
+  var planDetails = {
+    starter: { min: 5000, max: 10000, roi: 20 },
+    premium: { min: 10000, max: 50000, roi: 50 },
+    executive: { min: 50000, max: 500000, roi: 100 }
+  };
+  
+  var details = planDetails[plan];
+  
+  if (amount < details.min || amount > details.max) {
+    alert('Amount must be between ₦' + details.min.toLocaleString() + ' and ₦' + details.max.toLocaleString());
+    return;
+  }
+  
+  var email = getCurrentUser();
+  var users = getUsers();
+  var user = users[email];
+  
+  if (amount > user.wallet) {
+    alert('Insufficient balance!');
+    return;
+  }
+  
+  user.wallet -= amount;
+  user.investments.push({
+    plan: plan,
+    amount: amount,
+    roi: details.roi,
+    date: new Date().toLocaleDateString(),
+    status: 'Active'
+  });
+  
+  users[email] = user;
+  saveUsers(users);
+  
+  alert('Investment successful!');
+  closeModal('investModal');
+  document.getElementById('investAmount').value = '';
+  showDashboard();
+}
+
+// Initialize on page load
+initStorage();
+
+var currentUser = getCurrentUser();
+if (currentUser) {
+  var users = getUsers();
+  var user = users[currentUser];
+  
+  if (user && user.isAdmin === true) {
+    showAdminPanel();
+  } else if (user) {
+    showDashboard();
+  }
+}
+</script>
+
 </body>
   </html>
