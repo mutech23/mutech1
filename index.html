@@ -1,134 +1,299 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MUTECH — Investment Platform</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MUTECH Investment Platform</title>
+  <!-- Link to external CSS -->
   <link rel="stylesheet" href="style.css">
+  <!-- Google font kept as in your original -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header>
-    <h1>MUTECH Investment Platform</h1>
-    <button id="themeToggle">🌙</button>
-    <div id="authButtons">
-      <button id="loginBtn">Login</button>
-      <button id="registerBtn">Register</button>
-    </div>
-    <div id="userInfo" class="hidden">
-      <span id="username"></span>
-      <button id="adminBtn" class="hidden">Admin</button>
-      <button id="logoutBtn">Logout</button>
-    </div>
-  </header>
 
-  <!-- Landing section -->
+<div class="container">
+  <nav>
+    <div class="logo-section">
+      <div class="logo">M</div>
+      <div class="brand">
+        <h1>MUTECH</h1>
+        <div class="tagline">Investment Platform</div>
+      </div>
+    </div>
+    <div class="nav-controls">
+      <button class="theme-btn" id="themeToggle" title="Toggle theme">🌙</button>
+      <div id="authButtons">
+        <button class="btn btn-primary" id="loginBtn">Login</button>
+        <button class="btn btn-outline" id="registerBtn">Register</button>
+      </div>
+      <div id="userInfo" class="hidden">
+        <span id="username"></span>
+        <button class="btn btn-ghost" id="logoutBtn">Logout</button>
+        <button class="btn btn-primary hidden" id="adminBtn">Admin</button>
+      </div>
+    </div>
+  </nav>
+
   <section id="landingSection">
-    <p>Welcome to the best investment platform. Login or register to start investing!</p>
+    <div class="card">
+      <h2>Welcome to MUTECH Investment Platform</h2>
+      <p class="muted">Start your investment journey today. Register to explore deposits, investments, and referrals.</p>
+
+      <div class="plans">
+        <div class="plan">
+          <h4>Starter</h4>
+          <p>₦5,000 - ₦10,000</p>
+          <p class="muted small">ROI: 20%</p>
+          <button class="btn btn-primary plan-btn" data-plan="starter">Choose Plan</button>
+        </div>
+        <div class="plan">
+          <h4>Premium</h4>
+          <p>₦5,000 - ₦50,000</p>
+          <p class="muted small">ROI: 50%</p>
+          <button class="btn btn-primary plan-btn" data-plan="premium">Choose Plan</button>
+        </div>
+        <div class="plan">
+          <h4>Executive</h4>
+          <p>₦5,000 - ₦500,000</p>
+          <p class="muted small">ROI: 100%</p>
+          <button class="btn btn-primary plan-btn" data-plan="executive">Choose Plan</button>
+        </div>
+      </div>
+
+      <div class="deposit-box">
+        <h3>Deposit Account Details</h3>
+        <p><strong>Bank:</strong> Kuda Bank</p>
+        <p><strong>Account Name:</strong> MUTECH INVESTMENT</p>
+        <p><strong>Account Number:</strong> <span id="accountNumber">2014613557</span></p>
+        <div class="deposit-actions">
+          <button class="btn btn-primary" id="copyAccountBtn">Copy Account Number</button>
+          <button class="btn btn-outline" id="submitProofBtn">Submit Proof</button>
+        </div>
+        <p id="copyMsg" class="muted small hidden mt-1">✓ Copied to clipboard</p>
+      </div>
+    </div>
   </section>
 
-  <!-- Dashboard -->
   <section id="dashboardSection" class="hidden">
-    <div class="wallet">
-      <h2>Wallet Balance: <span id="walletBalance">₦0</span></h2>
-      <button onclick="openModal('depositModal')">Deposit</button>
-      <button onclick="openModal('withdrawModal')">Withdraw</button>
-      <button onclick="openModal('investModal')">Invest</button>
-      <button id="referralBtn">Referral</button>
-    </div>
+    <div class="card">
+      <h2>Dashboard</h2>
+      <div class="stats">
+        <div class="stat-card">
+          <div class="label">Wallet Balance</div>
+          <div class="value" id="walletBalance">₦0</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Active Investments</div>
+          <div class="value" id="activeInvestments">₦0</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Referral Earnings</div>
+          <div class="value" id="referralEarnings">₦0</div>
+        </div>
+      </div>
 
-    <div class="investment-history">
-      <h3>Investment History</h3>
-      <table>
-        <thead>
-          <tr><th>Plan</th><th>Amount</th><th>ROI</th><th>Date</th><th>Status</th></tr>
-        </thead>
-        <tbody id="investmentHistory"></tbody>
-      </table>
+      <div class="deposit-actions">
+        <button class="btn btn-primary" id="depositBtn">Deposit</button>
+        <button class="btn btn-outline" id="withdrawBtn">Withdraw</button>
+        <button class="btn btn-primary" id="investBtn">Invest</button>
+        <button class="btn btn-ghost" id="referralBtn">Referral</button>
+      </div>
+
+      <h3 class="mt-1">Investment History</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Plan</th>
+              <th>Amount</th>
+              <th>ROI</th>
+              <th>Date</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="investmentHistory"></tbody>
+        </table>
+      </div>
     </div>
   </section>
 
-  <!-- Admin Section -->
   <section id="adminSection" class="hidden">
-    <h2>Admin Dashboard</h2>
-    <p>Total Users: <span id="totalUsers"></span></p>
-    <p>Total Investments: <span id="totalInvestments"></span></p>
-    <p>Pending Deposits: <span id="pendingDepositsCount"></span></p>
-    <button onclick="document.getElementById('adminSection').classList.add('hidden'); updateUI();">Back</button>
+    <div class="card">
+      <h2>Admin Panel</h2>
+      <div class="stats">
+        <div class="stat-card">
+          <div class="label">Total Users</div>
+          <div class="value" id="totalUsers">0</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Total Investments</div>
+          <div class="value" id="totalInvestments">₦0</div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Pending Deposits</div>
+          <div class="value" id="pendingDepositsCount">0</div>
+        </div>
+      </div>
+
+      <h3 class="mt-1">Pending Deposits</h3>
+      <div id="pendingDepositsList"></div>
+
+      <h3 class="mt-1">Pending Withdrawals</h3>
+      <div id="pendingWithdrawalsList"></div>
+
+      <h3 class="mt-1">Pending Investments</h3>
+      <div id="pendingInvestmentsList"></div>
+
+      <h3 class="mt-1">Registered Users</h3>
+      <div id="usersList"></div>
+    </div>
   </section>
+</div>
 
-  <!-- Modals -->
-  <div id="loginModal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn">&times;</span>
+<!-- LOGIN MODAL -->
+<div id="loginModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
       <h3>Login</h3>
-      <form id="loginForm">
-        <input type="email" id="loginEmail" placeholder="Email" required>
-        <input type="password" id="loginPassword" placeholder="Password" required>
-        <button type="submit">Login</button>
-      </form>
-      <p>Don't have account? <span id="switchToRegister">Register</span></p>
+      <button class="close-btn" data-modal="loginModal">&times;</button>
     </div>
+    <form id="loginForm">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="loginEmail" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Login</button>
+      <p class="muted small mt-1">Don't have an account? <a href="#" id="switchToRegister" style="color: var(--accent1);">Register here</a></p>
+    </form>
   </div>
+</div>
 
-  <div id="registerModal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn">&times;</span>
+<!-- REGISTER MODAL -->
+<div id="registerModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
       <h3>Register</h3>
-      <form id="registerForm">
-        <input type="email" id="registerEmail" placeholder="Email" required>
-        <input type="password" id="registerPassword" placeholder="Password" required>
-        <input type="text" id="referralCode" placeholder="Referral Code (optional)">
-        <button type="submit">Register</button>
-      </form>
-      <p>Already have account? <span id="switchToLogin">Login</span></p>
+      <button class="close-btn" data-modal="registerModal">&times;</button>
     </div>
+    <form id="registerForm">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="registerEmail" required>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="registerPassword" required>
+      </div>
+      <div class="form-group">
+        <label>Referral Code (Optional)</label>
+        <input type="text" id="referralCode">
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Register</button>
+      <p class="muted small mt-1">Already have an account? <a href="#" id="switchToLogin" style="color: var(--accent1);">Login here</a></p>
+    </form>
   </div>
+</div>
 
-  <div id="depositModal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn">&times;</span>
-      <h3>Deposit</h3>
-      <input type="number" id="depositAmount" placeholder="Amount" min="1">
-      <button id="submitDepositBtn">Deposit</button>
+<!-- DEPOSIT MODAL -->
+<div id="depositModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Submit Deposit Proof</h3>
+      <button class="close-btn" data-modal="depositModal">&times;</button>
     </div>
-  </div>
-
-  <div id="withdrawModal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn">&times;</span>
-      <h3>Withdraw</h3>
-      <form id="withdrawForm">
-        <input type="number" id="withdrawAmount" placeholder="Amount" min="1" required>
-        <button type="submit">Withdraw</button>
-      </form>
+    <p class="muted small">Transfer to: Kuda Bank • 2014613557 • MUTECH INVESTMENT</p>
+    <div class="form-group">
+      <label>Amount (₦)</label>
+      <input type="number" id="depositAmount" min="1" required>
     </div>
+    <div class="form-group">
+      <label>Upload Proof (Image)</label>
+      <input type="file" id="depositProof" accept="image/*" required>
+    </div>
+    <div id="proofPreview" class="mt-1"></div>
+    <button type="button" class="btn btn-primary" id="submitDepositBtn" style="width: 100%;">Submit Proof</button>
   </div>
+</div>
 
-  <div id="investModal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn">&times;</span>
-      <h3>Invest</h3>
-      <form id="investForm">
+<!-- WITHDRAW MODAL -->
+<div id="withdrawModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Request Withdrawal</h3>
+      <button class="close-btn" data-modal="withdrawModal">&times;</button>
+    </div>
+    <form id="withdrawForm">
+      <div class="form-group">
+        <label>Amount (₦)</label>
+        <input type="number" id="withdrawAmount" min="8000" required>
+      </div>
+      <div class="form-group">
+        <label>Bank Name</label>
+        <input type="text" id="bankName" required>
+      </div>
+      <div class="form-group">
+        <label>Account Number</label>
+        <input type="text" id="accountNum" required>
+      </div>
+      <div class="form-group">
+        <label>Account Name</label>
+        <input type="text" id="accountName" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Request Withdrawal</button>
+    </form>
+  </div>
+</div>
+
+<!-- INVEST MODAL -->
+<div id="investModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Make Investment</h3>
+      <button class="close-btn" data-modal="investModal">&times;</button>
+    </div>
+    <form id="investForm">
+      <div class="form-group">
+        <label>Plan</label>
         <select id="investPlan" required>
-          <option value="">Select Plan</option>
-          <option value="starter">Starter 20% ROI</option>
-          <option value="premium">Premium 50% ROI</option>
-          <option value="vip">VIP 100% ROI</option>
+          <option value="starter">Starter (₦5K-10K, 20% ROI)</option>
+          <option value="premium">Premium (₦5K-50K, 50% ROI)</option>
+          <option value="executive">Executive (₦5K-500K, 100% ROI)</option>
         </select>
-        <input type="number" id="investAmount" placeholder="Amount" min="1" required>
-        <button type="submit">Invest</button>
-      </form>
+      </div>
+      <div class="form-group">
+        <label>Amount (₦)</label>
+        <input type="number" id="investAmount" min="5000" required>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width: 100%;">Invest Now</button>
+    </form>
+  </div>
+</div>
+
+<!-- REFERRAL MODAL -->
+<div id="referralModal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3>Referral Program</h3>
+      <button class="close-btn" data-modal="referralModal">&times;</button>
+    </div>
+    <div class="form-group">
+      <label>Your Referral Link</label>
+      <input type="text" id="referralLink" readonly>
+    </div>
+    <button type="button" class="btn btn-primary" id="copyReferralBtn" style="width: 100%;">Copy Link</button>
+    <div class="mt-1">
+      <p>Total Earnings: <strong id="referralTotal">₦0</strong></p>
+      <p>Total Referrals: <strong id="referralCount">0</strong></p>
     </div>
   </div>
+</div>
 
-  <div id="referralModal" class="modal">
-    <div class="modal-content">
-      <span class="close-btn">&times;</span>
-      <h3>Your Referral Code</h3>
-      <input type="text" id="userReferralCode" readonly>
-    </div>
-  </div>
-
-  <script src="script.js"></script>
+<!-- Script -->
+<!-- Link to external JS -->
+<script src="app.js" defer></script>
 </body>
   </html>
